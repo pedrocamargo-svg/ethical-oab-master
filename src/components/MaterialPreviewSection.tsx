@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import capa from "@/assets/material-capa.jpeg";
 import p1 from "@/assets/material-inside-1.jpeg";
 import p2 from "@/assets/material-inside-2.jpeg";
 import p3 from "@/assets/material-inside-3.jpeg";
@@ -10,7 +9,7 @@ import p6 from "@/assets/material-inside-6.jpeg";
 import p7 from "@/assets/material-inside-7.jpeg";
 import p8 from "@/assets/material-inside-8.jpeg";
 
-const pages = [capa, p1, p2, p3, p4, p5, p6, p7, p8];
+const pages = [p1, p2, p3, p4, p5, p6, p7, p8];
 
 const MaterialPreviewSection = () => {
   const [current, setCurrent] = useState(0);
