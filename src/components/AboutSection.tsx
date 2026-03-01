@@ -12,7 +12,7 @@ const AboutSection = () => {
             <img
               src={joaoPedro}
               alt="João Pedro"
-              className="w-64 h-80 object-cover rounded-2xl shadow-xl border-4 border-highlight"
+              className="w-64 h-80 object-cover object-top rounded-2xl shadow-xl border-4 border-highlight"
             />
           </div>
           <div>
