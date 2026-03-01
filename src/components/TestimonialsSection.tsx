@@ -25,14 +25,14 @@ const TestimonialsSection = () => {
           Veja o resultado dos meus alunos
         </p>
 
-        <div className="max-w-sm mx-auto relative">
+        <div className="max-w-xs sm:max-w-sm md:max-w-md mx-auto relative">
           {/* Arrow left */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 md:-translate-x-16 z-10 bg-highlight text-highlight-foreground w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:brightness-110 transition"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-10 sm:-translate-x-12 md:-translate-x-16 z-10 bg-highlight text-highlight-foreground w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg hover:brightness-110 transition"
             aria-label="Anterior"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           {/* Image */}
@@ -47,7 +47,7 @@ const TestimonialsSection = () => {
           {/* Arrow right */}
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 md:translate-x-16 z-10 bg-highlight text-highlight-foreground w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:brightness-110 transition"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-10 sm:translate-x-12 md:translate-x-16 z-10 bg-highlight text-highlight-foreground w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg hover:brightness-110 transition"
             aria-label="Próximo"
           >
             <ChevronRight className="w-6 h-6" />
