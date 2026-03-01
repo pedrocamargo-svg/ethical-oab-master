@@ -17,10 +17,10 @@ const TestimonialsSection = () => {
         <p className="text-center text-highlight font-heading font-bold text-xl mb-12">
           Veja o resultado dos meus alunos
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {testimonials.map((src, i) => (
-            <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-lg border border-border hover:shadow-xl transition-shadow">
-              <img src={src} alt={`Depoimento de aluno aprovado ${i + 1}`} className="w-full h-auto" loading="lazy" />
+            <div key={i} className="bg-card rounded-xl overflow-hidden shadow-md border border-border hover:shadow-lg transition-shadow">
+              <img src={src} alt={`Depoimento de aluno aprovado ${i + 1}`} className="w-full h-auto max-h-72 object-cover object-top" loading="lazy" />
             </div>
           ))}
         </div>
