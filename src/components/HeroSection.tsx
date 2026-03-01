@@ -1,6 +1,6 @@
 import logo from "@/assets/logo.jpeg";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
-import mockup from "@/assets/mockup-ebook.png";
+import mockup from "@/assets/material-capa.jpeg";
 import { ShieldCheck, FileText, Mail, Lock } from "lucide-react";
 
 const HeroSection = () => {
