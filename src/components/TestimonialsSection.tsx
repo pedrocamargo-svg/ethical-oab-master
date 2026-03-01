@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dep1 from "@/assets/depoimento1.jpeg";
 import dep2 from "@/assets/depoimento2.jpeg";
@@ -11,6 +11,10 @@ const testimonials = [dep1, dep2, dep3, dep4, dep5, dep6];
 
 const TestimonialsSection = () => {
   const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    testimonials.forEach((src) => { const img = new Image(); img.src = src; });
+  }, []);
 
   const prev = () => setCurrent((c) => (c === 0 ? testimonials.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === testimonials.length - 1 ? 0 : c + 1));

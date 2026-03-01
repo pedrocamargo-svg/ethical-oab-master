@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import p1 from "@/assets/material-inside-1.jpeg";
 import p2 from "@/assets/material-inside-2.jpeg";
@@ -13,6 +13,10 @@ const pages = [p1, p2, p3, p4, p5, p6, p7, p8];
 
 const MaterialPreviewSection = () => {
   const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    pages.forEach((src) => { const img = new Image(); img.src = src; });
+  }, []);
 
   const prev = () => setCurrent((c) => (c === 0 ? pages.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === pages.length - 1 ? 0 : c + 1));
