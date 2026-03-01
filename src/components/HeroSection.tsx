@@ -1,5 +1,4 @@
 import logo from "@/assets/logo.jpeg";
-import joaoPedro from "@/assets/joao-pedro.jpeg";
 import mockup from "@/assets/material-capa.jpeg";
 import { ShieldCheck, FileText, Mail, Lock } from "lucide-react";
 
@@ -25,32 +24,21 @@ const HeroSection = () => {
           </span>
         </div>
 
-        {/* Main content grid */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight mb-6">
-              Tenha acesso as{" "}
-              <span className="text-highlight">50 questões de ética profissional</span>{" "}
-              mais cobradas pela FGV que sempre se repetem.
-            </h1>
-            <p className="text-lg md:text-xl opacity-90 mb-8">
-              Estude as 50 questões sobre o tema com maior incidência na OAB e{" "}
-              <span className="text-highlight font-semibold">aumente seus acertos na prova.</span>
-            </p>
+        {/* Main content */}
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight mb-6">
+            Tenha acesso as{" "}
+            <span className="text-highlight">50 questões de ética profissional</span>{" "}
+            mais cobradas pela FGV que sempre se repetem.
+          </h1>
+          <p className="text-lg md:text-xl opacity-90 mb-8">
+            Estude as 50 questões sobre o tema com maior incidência na OAB e{" "}
+            <span className="text-highlight font-semibold">aumente seus acertos na prova.</span>
+          </p>
 
-            {/* Mockup */}
-            <div className="animate-float">
-              <img src={mockup} alt="Material 50 Questões OAB" className="w-full max-w-md mx-auto lg:mx-0" />
-            </div>
-          </div>
-
-          {/* João Pedro photo */}
-          <div className="flex justify-center">
-            <img
-              src={joaoPedro}
-              alt="João Pedro - OAB Estudo Direcionado"
-              className="w-72 md:w-96 rounded-2xl shadow-2xl object-cover"
-            />
+          {/* Mockup smaller */}
+          <div className="animate-float">
+            <img src={mockup} alt="Material 50 Questões OAB" className="w-48 md:w-56 mx-auto rounded-lg shadow-2xl" />
           </div>
         </div>
 
