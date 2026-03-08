@@ -11,9 +11,9 @@ const WhatsAppCTA = () => {
           Fale agora com um de nossos atendentes!
         </p>
         <a
-          href="https://api.whatsapp.com/send?phone=5511978752110"
-          target="_blank"
-          rel="noopener noreferrer"
+           href="https://api.whatsapp.com/send?phone=5511978752110&text=Olá! Tenho interesse no PDF das 50 questões comentadas sobre Ética profissional!"
+           target="_blank"
+           rel="noopener noreferrer"
           className="inline-flex items-center gap-3 bg-success text-success-foreground font-heading font-bold text-lg py-4 px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
         >
           <MessageCircle className="w-6 h-6" />
