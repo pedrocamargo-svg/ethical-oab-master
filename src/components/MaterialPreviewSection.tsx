@@ -25,7 +25,7 @@ const MaterialPreviewSection = () => {
     <section className="bg-section-alt py-16 md:py-24">
       <div className="container">
         <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
-          Veja o material por dentro
+          Veja uma prévia do nosso material
         </h2>
 
         <div className="max-w-xs sm:max-w-sm md:max-w-md mx-auto relative">
