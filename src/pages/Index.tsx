@@ -27,6 +27,7 @@ const Index = () => {
       <FAQSection />
       <WhatsAppCTA />
       <FooterDisclaimer />
+      <FloatingWhatsAppButton />
     </main>
   );
 };
