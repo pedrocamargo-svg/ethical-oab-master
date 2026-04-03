@@ -31,7 +31,7 @@ const PricingSection = () => {
 
             <a
               href="https://pay.hub.la/7zGyU7fQEJKlvUVtk1dn"
-              className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
+              className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
             >
               QUERO SER APROVADO
             </a>

@@ -36,7 +36,7 @@ const FAQSection = () => {
   return (
     <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container max-w-3xl">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 text-foreground">
           Dúvidas <span className="text-highlight">Frequentes</span>
         </h2>
         <Accordion type="single" collapsible className="space-y-3">

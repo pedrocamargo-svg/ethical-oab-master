@@ -51,9 +51,9 @@ const HeroSection = () => {
             { icon: Mail, label: "Acesso imediato por e-mail" },
             { icon: Lock, label: "Site 100% seguro" },
           ].map((item, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 bg-secondary/50 rounded-xl p-4 backdrop-blur-sm">
-              <item.icon className="w-8 h-8 text-highlight" />
-              <span className="text-sm font-semibold text-center">{item.label}</span>
+            <div key={i} className="flex flex-col items-center gap-1.5 sm:gap-2 bg-secondary/50 rounded-xl p-3 sm:p-4 backdrop-blur-sm">
+              <item.icon className="w-6 h-6 sm:w-8 sm:h-8 text-highlight" />
+              <span className="text-xs sm:text-sm font-semibold text-center">{item.label}</span>
             </div>
           ))}
         </div>

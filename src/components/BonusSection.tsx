@@ -13,7 +13,7 @@ const BonusSection = () => {
         <div className="max-w-2xl mx-auto mt-8 bg-secondary/40 rounded-2xl p-8 backdrop-blur-sm border border-highlight/30">
           <Gift className="w-10 h-10 sm:w-12 sm:h-12 text-highlight mx-auto mb-4" />
           <h3 className="font-heading font-bold text-2xl mb-4">
-            As 10 questões que mais caíram na OAB de Ética profissional nos últimos anos!
+            <span className="text-xl sm:text-2xl">As 10 questões que mais caíram na OAB de Ética profissional nos últimos anos!</span>
           </h3>
           <p className="text-lg opacity-90">
             Uma seção com as 10 questões com maior incidência na OAB feita para te ajudar a estudar as questões certeiras e ser aprovado no exame da ordem!

@@ -74,7 +74,7 @@ const TestimonialsSection = () => {
         <div className="text-center mt-12">
           <a
             href="#pricing"
-            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
+            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-8 sm:px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
           >
             QUERO SER APROVADO TAMBÉM!
           </a>
