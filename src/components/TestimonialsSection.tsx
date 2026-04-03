@@ -22,7 +22,7 @@ const TestimonialsSection = () => {
   return (
     <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-4 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-4 text-foreground">
           Já são milhares de alunos aprovados com a nossa metodologia e nossos produtos
         </h2>
         <p className="text-center text-highlight font-heading font-bold text-xl mb-12">
