@@ -2,7 +2,7 @@ import { Gift } from "lucide-react";
 
 const BonusSection = () => {
   return (
-    <section className="bg-hero text-hero-foreground py-16 md:py-24">
+    <section className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24">
       <div className="container text-center">
         <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-sm px-6 py-2 rounded-full uppercase mb-6">
           Oferta limitada
