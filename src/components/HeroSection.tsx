@@ -38,7 +38,7 @@ const HeroSection = () => {
 
           {/* Mockup smaller */}
           <div className="animate-float">
-            <img src={mockup} alt="Material 50 Questões OAB" className="w-48 md:w-56 mx-auto rounded-lg shadow-2xl" />
+            <img src={mockup} alt="Material 50 Questões OAB" className="w-40 sm:w-48 md:w-56 mx-auto rounded-lg shadow-2xl" />
           </div>
 
         </div>
