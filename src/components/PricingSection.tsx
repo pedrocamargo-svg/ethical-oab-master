@@ -22,7 +22,7 @@ const PricingSection = () => {
           {/* Price */}
           <div className="py-10 px-6">
             <div className="mb-2">
-              <span className="font-heading text-6xl font-extrabold text-highlight">R$ 27,90</span>
+              <span className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-highlight">R$ 27,90</span>
               <span className="text-muted-foreground text-lg ml-2">à vista</span>
             </div>
             <p className="text-muted-foreground text-lg mb-8">
