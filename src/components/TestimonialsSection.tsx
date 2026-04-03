@@ -20,7 +20,7 @@ const TestimonialsSection = () => {
   const next = () => setCurrent((c) => (c === testimonials.length - 1 ? 0 : c + 1));
 
   return (
-    <section className="bg-section-alt py-16 md:py-24">
+    <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container">
         <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-4 text-foreground">
           Já são milhares de alunos aprovados com a nossa metodologia e nossos produtos
