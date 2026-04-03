@@ -44,7 +44,7 @@ const HeroSection = () => {
         </div>
 
         {/* Trust badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-8 sm:mt-12">
           {[
             { icon: ShieldCheck, label: "Garantia de 7 dias" },
             { icon: FileText, label: "Acesso digital em PDF" },
