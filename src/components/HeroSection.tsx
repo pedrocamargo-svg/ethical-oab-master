@@ -26,12 +26,12 @@ const HeroSection = () => {
 
         {/* Main content */}
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl leading-tight mb-6">
+          <h1 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-tight mb-4 sm:mb-6">
             Tenha acesso as{" "}
             <span className="text-highlight">50 questões de ética profissional</span>{" "}
             mais cobradas pela FGV que sempre se repetem.
           </h1>
-          <p className="text-lg md:text-xl opacity-90 mb-8">
+          <p className="text-base sm:text-lg md:text-xl opacity-90 mb-6 sm:mb-8">
             Estude as 50 questões sobre o tema com maior incidência na OAB e{" "}
             <span className="text-highlight font-semibold">aumente seus acertos na prova.</span>
           </p>
