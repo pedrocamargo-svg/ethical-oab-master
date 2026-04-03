@@ -17,9 +17,9 @@ const ForWhoSection = () => {
         </h2>
         <div className="max-w-3xl mx-auto space-y-6">
           {points.map((item, i) => (
-            <div key={i} className="flex items-start gap-4 p-5 rounded-xl bg-section-alt border border-border">
-              <item.icon className="w-7 h-7 text-highlight flex-shrink-0 mt-1" />
-              <p className="text-foreground text-lg">{item.text}</p>
+            <div key={i} className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl bg-section-alt border border-border">
+              <item.icon className="w-6 h-6 sm:w-7 sm:h-7 text-highlight flex-shrink-0 mt-1" />
+              <p className="text-foreground text-base sm:text-lg">{item.text}</p>
             </div>
           ))}
         </div>
