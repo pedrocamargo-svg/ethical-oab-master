@@ -34,7 +34,7 @@ const faqs = [
 
 const FAQSection = () => {
   return (
-    <section className="bg-section-alt py-16 md:py-24">
+    <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container max-w-3xl">
         <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
           Dúvidas <span className="text-highlight">Frequentes</span>
