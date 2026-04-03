@@ -18,8 +18,8 @@ const HeroSection = () => {
         </div>
 
         {/* Badge */}
-        <div className="text-center mb-8">
-          <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-sm md:text-base px-6 py-2 rounded-full uppercase tracking-wide">
+        <div className="text-center mb-6 md:mb-8">
+          <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-xs sm:text-sm md:text-base px-4 sm:px-6 py-2 rounded-full uppercase tracking-wide">
             Atualizado para OAB 46
           </span>
         </div>
