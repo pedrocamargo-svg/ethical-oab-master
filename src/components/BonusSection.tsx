@@ -7,7 +7,7 @@ const BonusSection = () => {
         <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-sm px-6 py-2 rounded-full uppercase mb-6">
           Oferta limitada
         </span>
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl mb-4">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl mb-4">
           Você terá acesso agora a um bônus especial
         </h2>
         <div className="max-w-2xl mx-auto mt-8 bg-secondary/40 rounded-2xl p-8 backdrop-blur-sm border border-highlight/30">
