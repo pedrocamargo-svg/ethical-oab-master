@@ -2,7 +2,7 @@ import { CheckCircle, ShieldCheck } from "lucide-react";
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="bg-hero text-hero-foreground py-16 md:py-24">
+    <section id="pricing" className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24 px-4 sm:px-6">
       <div className="container text-center">
         <h2 className="font-heading font-bold text-2xl md:text-3xl mb-4">
           Como você chegou até aqui, vou te fazer uma proposta mais que especial…
