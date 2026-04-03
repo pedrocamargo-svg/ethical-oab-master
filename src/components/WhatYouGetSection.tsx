@@ -24,7 +24,7 @@ const WhatYouGetSection = () => {
           {items.map((item, i) => (
             <div key={i} className="flex items-start gap-3 sm:gap-4 bg-card rounded-xl p-4 sm:p-5 shadow-sm border border-border">
               <CheckCircle className="w-6 h-6 text-highlight flex-shrink-0 mt-0.5" />
-              <p className="text-foreground text-lg">{item}</p>
+              <p className="text-foreground text-base sm:text-lg">{item}</p>
             </div>
           ))}
         </div>
