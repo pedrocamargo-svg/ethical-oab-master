@@ -41,13 +41,6 @@ const HeroSection = () => {
             <img src={mockup} alt="Material 50 Questões OAB" className="w-48 md:w-56 mx-auto rounded-lg shadow-2xl" />
           </div>
 
-          {/* CTA */}
-          <a
-            href="#pricing"
-            className="inline-block mt-8 bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-10 rounded-full hover:brightness-110 transition-all shadow-lg animate-pulse-glow"
-          >
-            QUERO GARANTIR O MEU!
-          </a>
         </div>
 
         {/* Trust badges */}
