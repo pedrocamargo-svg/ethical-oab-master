@@ -4,7 +4,7 @@ const WhatsAppCTA = () => {
   return (
     <section className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-20">
       <div className="container text-center">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl mb-4">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl mb-4">
           Ainda tem dúvidas?
         </h2>
         <p className="text-lg opacity-90 mb-8">
