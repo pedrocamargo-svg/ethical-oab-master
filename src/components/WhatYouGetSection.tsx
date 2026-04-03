@@ -10,7 +10,7 @@ const items = [
 
 const WhatYouGetSection = () => {
   return (
-    <section className="bg-section-alt py-16 md:py-24">
+    <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container">
         <div className="text-center mb-4">
           <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-sm px-6 py-2 rounded-full uppercase">
