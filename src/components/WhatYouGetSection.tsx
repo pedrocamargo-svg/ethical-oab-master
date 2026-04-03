@@ -17,7 +17,7 @@ const WhatYouGetSection = () => {
             Menor valor do ano
           </span>
         </div>
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 text-foreground">
           O que você vai receber:
         </h2>
         <div className="max-w-3xl mx-auto space-y-5">
