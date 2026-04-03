@@ -20,9 +20,9 @@ const TestimonialsSection = () => {
   const next = () => setCurrent((c) => (c === testimonials.length - 1 ? 0 : c + 1));
 
   return (
-    <section className="bg-section-alt py-16 md:py-24">
+    <section className="bg-section-alt py-12 sm:py-16 md:py-24">
       <div className="container">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-4 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-4 text-foreground">
           Já são milhares de alunos aprovados com a nossa metodologia e nossos produtos
         </h2>
         <p className="text-center text-highlight font-heading font-bold text-xl mb-12">
@@ -74,7 +74,7 @@ const TestimonialsSection = () => {
         <div className="text-center mt-12">
           <a
             href="#pricing"
-            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
+            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-8 sm:px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
           >
             QUERO SER APROVADO TAMBÉM!
           </a>

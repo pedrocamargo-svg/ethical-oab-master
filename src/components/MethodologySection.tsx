@@ -1,8 +1,8 @@
 const MethodologySection = () => {
   return (
-    <section className="bg-hero text-hero-foreground py-16 md:py-24">
+    <section className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24">
       <div className="container max-w-3xl text-center">
-        <h2 className="font-heading font-extrabold text-2xl md:text-3xl mb-6">
+        <h2 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-6">
           Imagine que você já sabe quais são as principais questões sobre o principal tema da prova e sente que está seguindo o caminho certo
         </h2>
         <p className="text-xl opacity-90 mb-8 font-semibold text-highlight">

@@ -2,9 +2,9 @@ import { CheckCircle, ShieldCheck } from "lucide-react";
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="bg-hero text-hero-foreground py-16 md:py-24">
+    <section id="pricing" className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24 px-4 sm:px-6">
       <div className="container text-center">
-        <h2 className="font-heading font-bold text-2xl md:text-3xl mb-4">
+        <h2 className="font-heading font-bold text-xl sm:text-2xl md:text-3xl mb-4 px-2">
           Como você chegou até aqui, vou te fazer uma proposta mais que especial…
         </h2>
 
@@ -22,7 +22,7 @@ const PricingSection = () => {
           {/* Price */}
           <div className="py-10 px-6">
             <div className="mb-2">
-              <span className="font-heading text-6xl font-extrabold text-highlight">R$ 27,90</span>
+              <span className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-highlight">R$ 27,90</span>
               <span className="text-muted-foreground text-lg ml-2">à vista</span>
             </div>
             <p className="text-muted-foreground text-lg mb-8">
@@ -31,7 +31,7 @@ const PricingSection = () => {
 
             <a
               href="https://pay.hub.la/7zGyU7fQEJKlvUVtk1dn"
-              className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
+              className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
             >
               QUERO SER APROVADO
             </a>

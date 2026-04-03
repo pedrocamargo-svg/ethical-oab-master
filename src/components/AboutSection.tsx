@@ -2,9 +2,9 @@ import joaoPedro from "@/assets/joao-pedro.jpeg";
 
 const AboutSection = () => {
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-12 sm:py-16 md:py-24">
       <div className="container">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 text-foreground">
           Quem é João Pedro
         </h2>
         <div className="max-w-4xl mx-auto grid md:grid-cols-[300px_1fr] gap-10 items-center">
@@ -12,7 +12,7 @@ const AboutSection = () => {
             <img
               src={joaoPedro}
               alt="João Pedro"
-              className="w-64 h-80 object-cover object-top rounded-2xl shadow-xl border-4 border-highlight"
+              className="w-48 h-64 sm:w-64 sm:h-80 object-cover object-top rounded-2xl shadow-xl border-4 border-highlight"
             />
           </div>
           <div>

@@ -10,23 +10,23 @@ const points = [
 
 const ForWhoSection = () => {
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-12 sm:py-16 md:py-24">
       <div className="container">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 text-foreground">
           Para quem é o livro?
         </h2>
         <div className="max-w-3xl mx-auto space-y-6">
           {points.map((item, i) => (
-            <div key={i} className="flex items-start gap-4 p-5 rounded-xl bg-section-alt border border-border">
-              <item.icon className="w-7 h-7 text-highlight flex-shrink-0 mt-1" />
-              <p className="text-foreground text-lg">{item.text}</p>
+            <div key={i} className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl bg-section-alt border border-border">
+              <item.icon className="w-6 h-6 sm:w-7 sm:h-7 text-highlight flex-shrink-0 mt-1" />
+              <p className="text-foreground text-base sm:text-lg">{item.text}</p>
             </div>
           ))}
         </div>
         <div className="text-center mt-10">
           <a
             href="#pricing"
-            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-lg py-4 px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
+            className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-8 sm:px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
           >
             QUERO COMEÇAR AGORA!
           </a>
