@@ -13,8 +13,8 @@ const HeroSection = () => {
       
       <div className="container relative z-10 py-6 px-4 sm:px-6 sm:py-8">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <img src={logo} alt="OAB Estudo Direcionado" className="h-20 md:h-28 object-contain rounded-lg" />
+        <div className="flex justify-center mb-6 md:mb-8">
+          <img src={logo} alt="OAB Estudo Direcionado" className="h-16 sm:h-20 md:h-28 object-contain rounded-lg" />
         </div>
 
         {/* Badge */}
