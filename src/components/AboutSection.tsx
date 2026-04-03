@@ -4,7 +4,7 @@ const AboutSection = () => {
   return (
     <section className="bg-background py-12 sm:py-16 md:py-24">
       <div className="container">
-        <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-center mb-12 text-foreground">
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-center mb-8 sm:mb-12 text-foreground">
           Quem é João Pedro
         </h2>
         <div className="max-w-4xl mx-auto grid md:grid-cols-[300px_1fr] gap-10 items-center">
