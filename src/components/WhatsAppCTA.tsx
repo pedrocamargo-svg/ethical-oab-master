@@ -2,7 +2,7 @@ import { MessageCircle } from "lucide-react";
 
 const WhatsAppCTA = () => {
   return (
-    <section className="bg-hero text-hero-foreground py-16 md:py-20">
+    <section className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-20">
       <div className="container text-center">
         <h2 className="font-heading font-extrabold text-3xl md:text-4xl mb-4">
           Ainda tem dúvidas?
