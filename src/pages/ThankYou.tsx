@@ -1,9 +1,92 @@
+import { useEffect } from "react";
 import { CheckCircle, Mail, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+const PRODUCT_VALUE = 19.9;
+const PRODUCT_CURRENCY = "BRL";
+const PRODUCT_ID = "oab-etica-50q";
+const PRODUCT_NAME = "50 questões comentadas sobre Ética profissional";
+
+declare global {
+  interface Window {
+    ttq?: {
+      track: (event: string, params?: Record<string, unknown>, options?: { event_id?: string }) => void;
+    };
+    fbq?: (action: string, event: string, params?: Record<string, unknown>, options?: { eventID?: string }) => void;
+  }
+}
+
+const getCookie = (name: string): string | undefined => {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
 
 const ThankYou = () => {
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Use a stable event_id to deduplicate browser pixel + server CAPI
+    const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    const value = Number(searchParams.get("value")) || PRODUCT_VALUE;
+    const currency = searchParams.get("currency") || PRODUCT_CURRENCY;
+    const email = searchParams.get("email") || undefined;
+    const phone = searchParams.get("phone") || undefined;
+
+    const eventParams = {
+      value,
+      currency,
+      content_id: PRODUCT_ID,
+      content_type: "product",
+      content_name: PRODUCT_NAME,
+      contents: [
+        { content_id: PRODUCT_ID, content_type: "product", content_name: PRODUCT_NAME, quantity: 1, price: value },
+      ],
+    };
+
+    // 1) Browser-side TikTok Pixel
+    try {
+      window.ttq?.track("CompletePayment", eventParams, { event_id: eventId });
+    } catch (e) {
+      console.warn("TikTok pixel error:", e);
+    }
+
+    // 2) Browser-side Meta Pixel (mantém compatibilidade com pixel já existente)
+    try {
+      window.fbq?.("track", "Purchase", { value, currency }, { eventID: eventId });
+    } catch (e) {
+      console.warn("Meta pixel error:", e);
+    }
+
+    // 3) Server-side TikTok Conversions API (deduplicado pelo event_id)
+    const ttclid = searchParams.get("ttclid") || getCookie("ttclid");
+    const ttp = getCookie("_ttp");
+
+    supabase.functions
+      .invoke("tiktok-purchase", {
+        body: {
+          value,
+          currency,
+          content_id: PRODUCT_ID,
+          content_name: PRODUCT_NAME,
+          content_type: "product",
+          event_id: eventId,
+          url: window.location.href,
+          email,
+          phone,
+          ttclid,
+          ttp,
+        },
+      })
+      .then(({ error }) => {
+        if (error) console.warn("TikTok CAPI error:", error);
+      });
+  }, [searchParams]);
+
   return (
-    <main className="min-h-screen bg-hero text-hero-foreground flex items-center justify-center px-4">
+    <main className="min-h-screen bg-hero text-hero-foreground flex items-center justify-center px-4 py-12">
       <div className="max-w-lg w-full text-center space-y-8">
         <div className="flex justify-center">
           <div className="w-20 h-20 rounded-full bg-highlight/20 flex items-center justify-center">
