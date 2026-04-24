@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CheckCircle, Mail, ArrowLeft } from "lucide-react";
+import { CheckCircle, Mail, ArrowLeft, MessageCircle } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -117,15 +117,26 @@ const ThankYou = () => {
 
         <div className="space-y-4">
           <p className="text-hero-foreground/70 text-sm">
-            Caso não encontre o e-mail em alguns minutos, entre em contato pelo WhatsApp.
+            Caso não encontre o e-mail em alguns minutos, fale comigo direto no WhatsApp.
           </p>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-highlight hover:underline font-medium"
+          <a
+            href="https://wa.me/5519989535229?text=Ol%C3%A1!%20Acabei%20de%20comprar%20o%20material%20das%2050%20quest%C3%B5es%20de%20%C3%89tica%20Profissional."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold transition-colors shadow-lg"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Voltar para a página inicial
-          </Link>
+            <MessageCircle className="w-5 h-5" />
+            Falar no WhatsApp
+          </a>
+          <div>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-highlight hover:underline font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para a página inicial
+            </Link>
+          </div>
         </div>
       </div>
     </main>
