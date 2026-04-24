@@ -1,1 +1,4 @@
 project_id = "vitjljajoebxwdyparny"
+
+[functions.tiktok-purchase]
+verify_jwt = false
