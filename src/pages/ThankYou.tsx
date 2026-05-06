@@ -105,28 +105,25 @@ const ThankYou = () => {
 
         <div className="bg-card text-foreground rounded-2xl p-8 shadow-xl space-y-4">
           <div className="flex justify-center">
-            <Mail className="w-10 h-10 text-highlight" />
+            <MessageCircle className="w-10 h-10 text-highlight" />
           </div>
           <h2 className="font-heading font-bold text-xl">
             Seu acesso já foi enviado!
           </h2>
           <p className="text-muted-foreground">
-            Verifique seu <strong className="text-foreground">e-mail</strong> (inclusive a caixa de spam) para acessar o material completo das 50 questões comentadas sobre Ética Profissional.
+            Receba seu PDF pelo <strong className="text-foreground">WhatsApp</strong>! Clique no botão abaixo e receba o seu acesso!!
           </p>
         </div>
 
         <div className="space-y-4">
-          <p className="text-hero-foreground/70 text-sm">
-            Caso não encontre o e-mail em alguns minutos, fale comigo direto no WhatsApp.
-          </p>
           <a
             href="https://wa.me/5519989535229?text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold transition-colors shadow-lg"
+            className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg md:text-xl transition-colors shadow-xl uppercase tracking-wide"
           >
-            <MessageCircle className="w-5 h-5" />
-            Falar no WhatsApp
+            <MessageCircle className="w-6 h-6" />
+            Acessar meu produto
           </a>
           <div>
             <Link
