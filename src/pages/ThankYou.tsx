@@ -117,7 +117,7 @@ const ThankYou = () => {
 
         <div className="space-y-4">
           <a
-            href="https://wa.me/5519989535229?text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
+            href="https://wa.me/5511978752110?text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg md:text-xl transition-colors shadow-xl uppercase tracking-wide"
