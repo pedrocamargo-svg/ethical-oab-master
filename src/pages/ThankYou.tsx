@@ -120,7 +120,7 @@ const ThankYou = () => {
             Caso não encontre o e-mail em alguns minutos, fale comigo direto no WhatsApp.
           </p>
           <a
-            href="https://wa.me/5519989535229?text=Ol%C3%A1!%20Acabei%20de%20comprar%20o%20material%20das%2050%20quest%C3%B5es%20de%20%C3%89tica%20Profissional."
+            href="https://wa.me/5519989535229?text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 rounded-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold transition-colors shadow-lg"
