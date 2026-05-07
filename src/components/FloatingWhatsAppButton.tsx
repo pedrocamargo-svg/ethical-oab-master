@@ -1,27 +1,6 @@
 import { MessageCircle } from "lucide-react";
-import { useState, useEffect } from "react";
 
 const FloatingWhatsAppButton = () => {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const pricingEl = document.getElementById("pricing");
-      if (pricingEl) {
-        const rect = pricingEl.getBoundingClientRect();
-        if (rect.top <= window.innerHeight) {
-          setVisible(true);
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  if (!visible) return null;
-
   return (
     <a
       href="https://api.whatsapp.com/send?phone=5511978752110&text=Olá! Tenho interesse no PDF das 50 questões comentadas sobre Ética profissional!"
