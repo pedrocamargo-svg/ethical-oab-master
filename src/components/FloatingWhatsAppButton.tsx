@@ -3,7 +3,7 @@ import { MessageCircle } from "lucide-react";
 const FloatingWhatsAppButton = () => {
   return (
     <a
-      href="https://api.whatsapp.com/send?phone=5511978752110&text=Ol%C3%A1!%20Tenho%20interesse%20no%20PDF%20das%2050%20quest%C3%B5es%20comentadas%20sobre%20%C3%89tica%20profissional!"
+      href="https://api.whatsapp.com/send?phone=5511978752110&text=Olá! Tenho interesse no PDF das 50 questões comentadas sobre Ética profissional!"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 bg-success hover:bg-success/90 text-success-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-in fade-in"
