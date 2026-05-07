@@ -120,9 +120,12 @@ const ThankYou = () => {
             href="https://wa.me/5511978752110?text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg md:text-xl transition-colors shadow-xl uppercase tracking-wide"
+            className="relative inline-flex items-center justify-center gap-3 w-full px-8 py-6 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xl md:text-2xl transition-all shadow-2xl uppercase tracking-wide animate-pulse ring-4 ring-primary/30"
           >
-            <MessageCircle className="w-6 h-6" />
+            <span className="absolute -top-3 -right-3 flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white shadow-lg border-2 border-white">
+              1
+            </span>
+            <MessageCircle className="w-7 h-7" />
             Acessar meu produto
           </a>
           <div>
