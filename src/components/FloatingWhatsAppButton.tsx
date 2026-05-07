@@ -3,7 +3,7 @@ import { MessageCircle } from "lucide-react";
 const FloatingWhatsAppButton = () => {
   return (
     <a
-      href="https://api.whatsapp.com/send?phone=5511978752110&text=Ol%C3%A1!%20Quero%20receber%20o%20PDF%20pelo%20whatsapp"
+      href="https://api.whatsapp.com/send?phone=5511978752110&text=ol%C3%A1!%20quero%20receber%20o%20pdf%20pelo%20whatsapp"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-16 h-16 bg-success hover:bg-success/90 text-success-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 animate-in fade-in"
