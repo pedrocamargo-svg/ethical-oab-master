@@ -10,6 +10,9 @@ import AboutSection from "@/components/AboutSection";
 import FAQSection from "@/components/FAQSection";
 import WhatsAppCTA from "@/components/WhatsAppCTA";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
+import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
+
+
 
 
 const Index = () => {
@@ -27,7 +30,7 @@ const Index = () => {
       <FAQSection />
       <WhatsAppCTA />
       <FooterDisclaimer />
-      
+      <FloatingWhatsAppButton />
     </main>
   );
 };
