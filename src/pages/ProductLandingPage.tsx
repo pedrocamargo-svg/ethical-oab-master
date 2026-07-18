@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSearchParams, useParams, Navigate } from "react-router-dom";
 import { CheckCircle, ShieldCheck, FileText, Mail, Lock, MessageCircle } from "lucide-react";
 import { PRODUCTS, getTierFromQuery } from "@/data/products";
@@ -5,7 +6,9 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import AboutSection from "@/components/AboutSection";
 import FAQSection from "@/components/FAQSection";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
+import { initTracking, trackEvent } from "@/lib/tracking";
 import logo from "@/assets/logo.jpeg";
+
 
 const ProductLandingPage = () => {
   const { slug } = useParams<{ slug: string }>();
