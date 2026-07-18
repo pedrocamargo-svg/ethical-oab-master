@@ -15,9 +15,14 @@ const ProductLandingPage = () => {
   const [params] = useSearchParams();
   const product = slug ? PRODUCTS[slug] : undefined;
 
+  useEffect(() => {
+    if (product) initTracking({ funnel: `product:${product.slug}` });
+  }, [product?.slug]);
+
   if (!product) return <Navigate to="/" replace />;
 
   const tier = getTierFromQuery(product, params.get("t"));
+
 
   const trackAndGo = () => {
     try {
