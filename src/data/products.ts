@@ -86,7 +86,7 @@ export const PRODUCTS: Record<string, Product> = {
       "36 temas potenciais mapeados com base no histórico da FGV",
       "Cada tema com resumo, dicas e questões comentadas",
       "Domine o padrão FGV de cobrança",
-      "Material 100% atualizado para OAB 46",
+      "Material 100% atualizado",
       "Foco absoluto no que mais cai",
     ],
     forWho: [

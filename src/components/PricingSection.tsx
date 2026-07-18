@@ -45,7 +45,7 @@ const PricingSection = () => {
           {/* Features list */}
           <div className="border-t border-border px-6 py-8 space-y-4">
             {[
-              { text: "Livro digital 100% atualizado para OAB 46", bold: "" },
+              { text: "Livro digital 100% atualizado", bold: "" },
               { text: "Questões da disciplina que", bold: "mais pontua" },
               { text: "Domine o tema com maior incidência", bold: "" },
               { text: "Vários gabaritos comentados com tabelas, diagramas e resumos", bold: "" },
