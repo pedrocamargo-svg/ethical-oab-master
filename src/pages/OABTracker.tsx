@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Circle, Lock, Play, RefreshCw, Search, ShoppingCart, Trash2, X } from "lucide-react";
-import "rrweb-player/dist/style.css";
+import { CheckCircle2, Circle, Flame, Lock, RefreshCw, Search, Trash2, X } from "lucide-react";
+
 
 
 const TOKEN_KEY = "oab_admin_token";
