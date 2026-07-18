@@ -26,6 +26,10 @@ async function getGeo() {
 
 export async function initTracking(meta: SessionMeta) {
   if (typeof window === "undefined") return;
+  // Prevent double-invocation (React StrictMode / remounts) for the same funnel
+  if (initedFunnel === meta.funnel && initPromise) return initPromise;
+  initedFunnel = meta.funnel;
+  initPromise = (async () => {
   // Reuse session if same funnel & recent (30 min)
   const existing = sessionStorage.getItem(SESSION_KEY);
   if (existing) {
