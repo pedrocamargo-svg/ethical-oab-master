@@ -11,10 +11,13 @@ type SessionMeta = {
 let currentSessionId: string | null = null;
 let recordingEvents: any[] = [];
 let stopFn: (() => void) | null = null;
+let recordReadyPromise: Promise<void> | null = null;
 let initPromise: Promise<void> | null = null;
 let initedFunnel: string | null = null;
 let flushTimer: number | null = null;
 const pendingEvents: { event_type: string; payload: Record<string, any> }[] = [];
+
+const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 function getSessionKey(funnel: string) {
   return `${SESSION_KEY_PREFIX}${funnel}`;
@@ -35,11 +38,16 @@ export async function initTracking(meta: SessionMeta) {
   // Prevent double-invocation (React StrictMode / remounts) for the same funnel
   if (initedFunnel === meta.funnel && initPromise) return initPromise;
   if (initedFunnel !== meta.funnel) {
+    // Before leaving a quiz/product funnel, push the final recording chunk while
+    // the previous session_id is still available. This prevents blank replays
+    // when the user immediately opens the personalized sales page.
+    await flushTrackingNow(false);
     currentSessionId = null;
     if (stopFn) {
       try { stopFn(); } catch {}
       stopFn = null;
     }
+    recordReadyPromise = null;
   }
   initedFunnel = meta.funnel;
   startRecording();
@@ -71,6 +79,9 @@ export async function initTracking(meta: SessionMeta) {
       currentSessionId = data.session_id;
       sessionStorage.setItem(sessionKey, currentSessionId!);
       if (data.user_label) localStorage.setItem(USER_LABEL_KEY, data.user_label);
+      // Upload an initial full snapshot as soon as the session exists, so the
+      // tracker can replay even if the visitor moves to the next page quickly.
+      await flushTrackingNow(false);
     }
   } catch (e) {
     console.warn("track-session err", e);
@@ -86,8 +97,8 @@ export async function initTracking(meta: SessionMeta) {
 }
 
 function startRecording() {
-  if (stopFn) return;
-  import("rrweb").then((rrweb) => {
+  if (stopFn || recordReadyPromise) return;
+  recordReadyPromise = import("rrweb").then((rrweb) => {
     stopFn = rrweb.record({
       emit(event) {
         recordingEvents.push(event);
@@ -102,15 +113,39 @@ function startRecording() {
       // Force a fresh full snapshot every 30s so any opened window has one.
       checkoutEveryNms: 30_000,
     }) || null;
+    try { rrweb.takeFullSnapshot?.(true); } catch {}
     if (flushTimer) window.clearInterval(flushTimer);
     flushTimer = window.setInterval(() => flushRecording(false), 5000);
     window.addEventListener("pagehide", () => flushRecording(true), { capture: true });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") flushRecording(true);
     });
+  }).then(() => undefined).catch(() => {
+    recordReadyPromise = null;
+    // rrweb optional
   }).catch(() => {
     // rrweb optional
   });
+}
+
+async function forceFullSnapshot() {
+  if (typeof window === "undefined") return;
+  try {
+    startRecording();
+    if (recordReadyPromise) await Promise.race([recordReadyPromise, wait(1500)]);
+    const rrweb = await import("rrweb");
+    rrweb.takeFullSnapshot?.(true);
+    // Give rrweb one tick to emit the full snapshot before we upload the chunk.
+    await wait(150);
+  } catch {
+    // recording is best-effort
+  }
+}
+
+export async function flushTrackingNow(useBeacon = false) {
+  if (!currentSessionId) return;
+  await forceFullSnapshot();
+  await flushRecording(useBeacon);
 }
 
 async function flushRecording(useBeacon = false) {
@@ -132,16 +167,29 @@ export async function trackEvent(event_type: string, payload: Record<string, any
   return sendEvent(event_type, payload);
 }
 
-async function sendEvent(event_type: string, payload: Record<string, any> = {}) {
+export async function trackEventAndFlush(event_type: string, payload: Record<string, any> = {}) {
+  if (initPromise) {
+    try { await initPromise; } catch {}
+  }
+  if (!currentSessionId) {
+    pendingEvents.push({ event_type, payload });
+    return;
+  }
+  await flushTrackingNow(false);
+  await sendEvent(event_type, payload, false);
+  await flushRecording(false);
+}
+
+async function sendEvent(event_type: string, payload: Record<string, any> = {}, keepalive = true) {
   try {
     // Flush any pending recording first so the moment of the event is captured.
-    flushRecording(true);
+    await flushRecording(keepalive);
     await postFn("track-event", {
       session_id: currentSessionId,
       event_type,
       payload,
       url: typeof window !== "undefined" ? window.location.href : undefined,
-    }, true);
+    }, keepalive);
   } catch (e) {
     console.warn("track-event err", e);
   }
