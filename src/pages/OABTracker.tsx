@@ -209,8 +209,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           <p className="text-white/50 text-sm">Painel de rastreamento · {getFunnelLabel(funnel)}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20"><RefreshCw className="w-4 h-4" /></button>
-          <button onClick={() => setShowDelete(true)} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40"><Trash2 className="w-4 h-4" /></button>
+          <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20" title="Recarregar"><RefreshCw className="w-4 h-4" /></button>
+          <button onClick={() => setShowHeatmap(true)} className="p-2 bg-orange-600/20 text-orange-300 rounded-lg hover:bg-orange-600/40" title="Mapa de calor"><Flame className="w-4 h-4" /></button>
+          <button onClick={() => setShowDelete(true)} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40" title="Deletar"><Trash2 className="w-4 h-4" /></button>
           <select value={funnel} onChange={(e) => setFunnel(e.target.value)} className="bg-white/10 rounded-lg px-3 py-2 text-sm border border-white/10">
             {FUNNELS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
           </select>
