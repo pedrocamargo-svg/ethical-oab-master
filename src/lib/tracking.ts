@@ -74,6 +74,8 @@ export async function initTracking(meta: SessionMeta) {
   } catch (e) {
     // rrweb optional
   }
+  })();
+  return initPromise;
 }
 
 async function flushRecording() {
