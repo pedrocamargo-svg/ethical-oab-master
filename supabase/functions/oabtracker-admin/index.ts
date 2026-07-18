@@ -16,6 +16,20 @@ const PW_NUMERIC = '170300';
 const PW_ALPHA = 'Pedro100pre#';
 const TOKEN_SECRET = 'oab-tracker-2026-token'; // simple bearer token
 
+function normalizePassword(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFKC')
+    .trim();
+}
+
+function isValidAlphaPassword(value: unknown) {
+  const normalized = normalizePassword(value).toLowerCase();
+  const expected = PW_ALPHA.toLowerCase();
+  const expectedWithoutHash = expected.replace(/#$/, '');
+
+  return normalized === expected || normalized === expectedWithoutHash;
+}
+
 function checkAuth(req: Request) {
   const h = req.headers.get('x-oab-token');
   return h === TOKEN_SECRET;
@@ -30,7 +44,9 @@ Deno.serve(async (req) => {
     const action = body.action as string;
 
     if (action === 'login') {
-      const { device_fp, pw_numeric, pw_alpha } = body;
+      const device_fp = normalizePassword(body.device_fp || body.device || 'default-device');
+      const pw_numeric = normalizePassword(body.pw_numeric ?? body.numeric ?? body.senha_numerica);
+      const pw_alpha = body.pw_alpha ?? body.alpha ?? body.senha_alfanumerica;
       const now = new Date();
       const { data: att } = await supabase.from('oabtracker_auth_attempts').select('*').eq('device_fp', device_fp).maybeSingle();
 
@@ -38,7 +54,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: 'locked', locked_until: att.locked_until }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const ok = pw_numeric === PW_NUMERIC && pw_alpha === PW_ALPHA;
+      const ok = pw_numeric === PW_NUMERIC && isValidAlphaPassword(pw_alpha);
       if (!ok) {
         const newAttempts = (att?.attempts ?? 0) + 1;
         const shouldLock = newAttempts >= 3;
