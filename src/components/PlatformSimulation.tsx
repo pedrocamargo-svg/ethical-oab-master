@@ -404,7 +404,7 @@ export default function PlatformSimulation() {
       </div>
 
       {/* Mini preview */}
-      <div className="rounded-2xl overflow-hidden border-2 border-sales-text/10 shadow-xl pointer-events-none">
+      <div className="rounded-2xl overflow-hidden border-2 border-foreground/10 shadow-xl pointer-events-none">
         {renderMapa()}
       </div>
     </div>
