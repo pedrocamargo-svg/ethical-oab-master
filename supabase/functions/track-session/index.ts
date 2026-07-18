@@ -49,14 +49,18 @@ Deno.serve(async (req) => {
         const lastSeenMs = new Date(existing.last_seen_at).getTime();
         const isNewVisit = nowMs - lastSeenMs > 5 * 60 * 1000; // 5 min gap = novo acesso
         const dur = Math.max(existing.duration_seconds, Math.floor((nowMs - new Date(existing.started_at).getTime()) / 1000));
+        // Merge UTMs: keep first-touch values, only add keys that are missing.
+        const mergedUtms = { ...incomingUtms, ...(existing.utm_params ?? {}) };
         await supabase.from('tracking_sessions').update({
           last_seen_at: new Date().toISOString(),
           access_count: isNewVisit ? existing.access_count + 1 : existing.access_count,
           duration_seconds: dur,
           url: body.url ?? existing.url,
+          utm_params: mergedUtms,
         }).eq('id', sessionId);
         return new Response(JSON.stringify({ session_id: sessionId, user_label: existing.user_label }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
+
     }
 
     if (!userLabel) {
