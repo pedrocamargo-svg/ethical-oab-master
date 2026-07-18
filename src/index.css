@@ -124,3 +124,13 @@ body {
 #lovable-badge {
   display: none !important;
 }
+
+/* PlatformSimulation - Dia 1 demo styles */
+.neutral-colors .text-green-600,
+.neutral-colors .text-red-600 {
+  color: inherit !important;
+  font-weight: normal !important;
+}
+.strategic-comment h3 {
+  font-weight: 700 !important;
+}
