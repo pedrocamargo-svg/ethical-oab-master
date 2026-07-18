@@ -329,6 +329,20 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         });
         player.play();
         window.setTimeout(() => {
+          const wrapper = target.querySelector<HTMLElement>(".replayer-wrapper");
+          const iframe = target.querySelector<HTMLIFrameElement>("iframe");
+          if (wrapper && iframe) {
+            const targetWidth = Math.max(target.clientWidth, 320);
+            const targetHeight = Math.max(target.clientHeight, 340);
+            const frameWidth = Number(iframe.getAttribute("width")) || iframe.offsetWidth || 1280;
+            const frameHeight = Number(iframe.getAttribute("height")) || iframe.offsetHeight || 720;
+            const scale = Math.min(targetWidth / frameWidth, targetHeight / frameHeight, 1);
+            wrapper.style.position = "relative";
+            wrapper.style.left = "50%";
+            wrapper.style.top = "50%";
+            wrapper.style.transformOrigin = "top left";
+            wrapper.style.transform = `scale(${scale}) translate(-50%, -50%)`;
+          }
           if (!cancelled && !target.querySelector("iframe")) {
             setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
           }
