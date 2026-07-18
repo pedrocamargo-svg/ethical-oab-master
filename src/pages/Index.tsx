@@ -19,7 +19,9 @@ import { initTracking } from "@/lib/tracking";
 
 
 const Index = () => {
+  useEffect(() => { initTracking({ funnel: "product:50-questoes-etica" }); }, []);
   return (
+
     <main>
       <HeroSection />
       <WhatYouGetSection />
