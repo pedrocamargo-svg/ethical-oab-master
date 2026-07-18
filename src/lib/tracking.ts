@@ -123,8 +123,6 @@ function startRecording() {
   }).then(() => undefined).catch(() => {
     recordReadyPromise = null;
     // rrweb optional
-  }).catch(() => {
-    // rrweb optional
   });
 }
 
@@ -180,7 +178,7 @@ export async function trackEventAndFlush(event_type: string, payload: Record<str
   await flushRecording(false);
 }
 
-async function sendEvent(event_type: string, payload: Record<string, any> = {}, keepalive = true) {
+async function sendEvent(event_type: string, payload: Record<string, any> = {}, keepalive = false) {
   try {
     // Flush any pending recording first so the moment of the event is captured.
     await flushRecording(keepalive);
