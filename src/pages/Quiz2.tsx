@@ -11,6 +11,7 @@ import {
 import { initTracking, trackEvent } from "@/lib/tracking";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
+import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
 import dep1 from "@/assets/depoimento1.jpeg";
 import dep2 from "@/assets/depoimento2.jpeg";
 import dep3 from "@/assets/depoimento3.jpeg";
@@ -19,7 +20,7 @@ import dep5 from "@/assets/depoimento5.jpeg";
 import dep6 from "@/assets/depoimento6.jpeg";
 
 // Preload all quiz images on mount to eliminate first-render delay
-const PRELOAD_IMGS = [joaoPedro, dep1, dep2, dep3, dep4, dep5, dep6];
+const PRELOAD_IMGS = [joaoPedro, depoimentoNazareth.url, dep1, dep2, dep3, dep4, dep5, dep6];
 
 type A = Record<string, any>;
 
@@ -53,19 +54,11 @@ const Quiz2 = () => {
       <QuizTitle>
         Vou te dar o passo a passo completo para você passar na OAB como a <span className="text-green-400">Dona Nazareth de 78 anos</span> conseguiu.
       </QuizTitle>
-      <div className="bg-white/5 border border-green-500/30 rounded-2xl p-5 sm:p-6 mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-2xl font-extrabold text-black">N</div>
-          <div>
-            <div className="font-bold">Dona Nazareth, 78 anos</div>
-            <div className="text-xs text-green-400">✓ Aprovada na OAB</div>
-          </div>
-        </div>
-        <p className="text-white/85 text-sm sm:text-base italic leading-relaxed">
-          "Depois de anos tentando, eu já achava que não ia mais conseguir. Segui o método do João Pedro passo a passo, estudei só o que ele mandou — e passei na primeira tentativa depois de aplicar. Se eu consegui aos 78, você também consegue."
-        </p>
-        <div className="flex gap-1 mt-3 text-yellow-400">★★★★★</div>
-      </div>
+      <img
+        src={depoimentoNazareth.url}
+        alt="Depoimento da Dona Nazareth, 78 anos, aprovada na OAB"
+        className="w-full max-w-md mx-auto h-auto max-h-[70vh] object-contain rounded-xl mb-6"
+      />
       <QuizButton onClick={() => next()}>Quero muito</QuizButton>
     </>,
     // #2
