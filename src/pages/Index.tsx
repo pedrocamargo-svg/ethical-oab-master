@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import HeroSection from "@/components/HeroSection";
 import WhatYouGetSection from "@/components/WhatYouGetSection";
 import BonusSection from "@/components/BonusSection";
@@ -11,6 +12,8 @@ import FAQSection from "@/components/FAQSection";
 import WhatsAppCTA from "@/components/WhatsAppCTA";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
 import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
+import { initTracking } from "@/lib/tracking";
+
 
 
 
