@@ -303,77 +303,13 @@ const Metric = ({ label, value }: { label: string; value: any }) => (
 
 const SessionModal = ({ session, onClose }: { session: any; onClose: () => void }) => {
   const [detail, setDetail] = useState<any>(null);
-  const [playing, setPlaying] = useState(false);
-  const [playerError, setPlayerError] = useState("");
 
   useEffect(() => {
     setDetail(null);
-    setPlaying(false);
-    setPlayerError("");
-    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [], recording: [] }));
+    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [] }));
   }, [session.id]);
 
   const events = detail?.events ?? [];
-  const recording = Array.isArray(detail?.recording)
-    ? detail.recording
-        .filter((ev: any) => ev && typeof ev.type === "number" && typeof ev.timestamp === "number")
-        .sort((a: any, b: any) => a.timestamp - b.timestamp)
-    : [];
-  const hasFullSnapshot = recording.some((ev: any) => ev.type === 2);
-  const replayRecording = hasFullSnapshot ? recording.slice(recording.findIndex((ev: any) => ev.type === 2)) : recording;
-
-  useEffect(() => {
-    if (!playing || !replayRecording.length) return;
-    let player: any;
-    let cancelled = false;
-    (async () => {
-      try {
-        setPlayerError("");
-        const mod: any = await import("rrweb");
-        if (cancelled) return;
-        const Replayer = mod.Replayer;
-        const target = document.getElementById("rrweb-target");
-        if (!target) return;
-        target.innerHTML = "";
-        player = new Replayer(replayRecording, {
-          root: target,
-          skipInactive: true,
-          showWarning: false,
-          showDebug: false,
-          mouseTail: false,
-        });
-        player.play();
-        window.setTimeout(() => {
-          const wrapper = target.querySelector<HTMLElement>(".replayer-wrapper");
-          const iframe = target.querySelector<HTMLIFrameElement>("iframe");
-          if (wrapper && iframe) {
-            const targetWidth = Math.max(target.clientWidth, 320);
-            const frameWidth = Number(iframe.getAttribute("width")) || iframe.offsetWidth || 1280;
-            const frameHeight = Number(iframe.getAttribute("height")) || iframe.offsetHeight || 720;
-            const scale = Math.min(targetWidth / frameWidth, 1);
-            const scaledHeight = Math.max(340, Math.ceil(frameHeight * scale));
-            target.style.position = "relative";
-            target.style.height = `${scaledHeight}px`;
-            target.style.overflow = "hidden";
-            wrapper.style.position = "absolute";
-            wrapper.style.left = `${Math.max(0, (targetWidth - frameWidth * scale) / 2)}px`;
-            wrapper.style.top = `${Math.max(0, (scaledHeight - frameHeight * scale) / 2)}px`;
-            wrapper.style.transformOrigin = "top left";
-            wrapper.style.transform = `scale(${scale})`;
-          }
-          if (!cancelled && !target.querySelector("iframe")) {
-            setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
-          }
-        }, 800);
-      } catch (err) {
-        console.error("rrweb-player error", err);
-        setPlayerError("Não foi possível carregar o player desta sessão.");
-        const target = document.getElementById("rrweb-target");
-        if (target) target.innerHTML = '';
-      }
-    })();
-    return () => { cancelled = true; try { player?.destroy?.(); } catch {} };
-  }, [playing, replayRecording.length]);
 
   const formatPayload = (p: any) => {
     if (!p || typeof p !== "object") return String(p ?? "");
@@ -398,27 +334,6 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         </div>
         <div className="p-6">
           {!detail && <p className="text-white/50 text-sm mb-4">Carregando detalhes...</p>}
-
-          {recording.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-bold">Gravação da sessão</h3>
-                <span className="text-white/40 text-xs">{recording.length} eventos</span>
-                {!playing && (
-                  <button onClick={() => setPlaying(true)} disabled={!hasFullSnapshot} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1 ml-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                    <Play className="w-3 h-3" /> Reproduzir
-                  </button>
-                )}
-              </div>
-              {!hasFullSnapshot && (
-                <p className="text-yellow-300/80 text-xs mb-2">Esta sessão ainda não tem snapshot completo para reproduzir.</p>
-              )}
-              <div id="rrweb-target" className="bg-white rounded overflow-auto min-h-[340px] w-full text-white/40 text-sm">
-                {!playing && <div className="min-h-[340px] flex items-center justify-center">Clique em Reproduzir para iniciar</div>}
-                {playerError && <div className="min-h-[340px] flex items-center justify-center p-6 text-red-400">{playerError}</div>}
-              </div>
-            </div>
-          )}
 
           <FunnelProgress session={session} events={events} />
 
