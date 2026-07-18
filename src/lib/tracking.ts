@@ -1,0 +1,104 @@
+// Client-side tracking helper. Registers session on load, logs events, records rrweb, and pings server.
+import { supabase } from "@/integrations/supabase/client";
+
+const SESSION_KEY = "oab_tracking_session_id";
+const USER_LABEL_KEY = "oab_tracking_user_label";
+
+type SessionMeta = {
+  funnel: string;
+};
+
+let currentSessionId: string | null = null;
+let recordingEvents: any[] = [];
+let stopFn: (() => void) | null = null;
+
+async function getGeo() {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function initTracking(meta: SessionMeta) {
+  if (typeof window === "undefined") return;
+  // Reuse session if same funnel & recent (30 min)
+  const existing = sessionStorage.getItem(SESSION_KEY);
+  if (existing) {
+    currentSessionId = existing;
+  }
+  const geo = await getGeo();
+  const label = localStorage.getItem(USER_LABEL_KEY) || undefined;
+
+  try {
+    const { data, error } = await supabase.functions.invoke("track-session", {
+      body: {
+        session_id: currentSessionId,
+        user_label: label,
+        funnel: meta.funnel,
+        url: window.location.href,
+        user_agent: navigator.userAgent,
+        ip: geo?.ip,
+        city: geo?.city,
+        region: geo?.region,
+        country: geo?.country_name,
+      },
+    });
+    if (!error && data?.session_id) {
+      currentSessionId = data.session_id;
+      sessionStorage.setItem(SESSION_KEY, currentSessionId!);
+      if (data.user_label) localStorage.setItem(USER_LABEL_KEY, data.user_label);
+    }
+  } catch (e) {
+    console.warn("track-session err", e);
+  }
+
+  // Start rrweb recording lazily
+  try {
+    const rrweb = await import("rrweb");
+    stopFn = rrweb.record({
+      emit(event) {
+        recordingEvents.push(event);
+        if (recordingEvents.length >= 50) flushRecording();
+      },
+    }) || null;
+    setInterval(flushRecording, 15000);
+  } catch (e) {
+    // rrweb optional
+  }
+}
+
+async function flushRecording() {
+  if (!currentSessionId || recordingEvents.length === 0) return;
+  const events = recordingEvents;
+  recordingEvents = [];
+  try {
+    await supabase.functions.invoke("track-recording", {
+      body: { session_id: currentSessionId, events },
+    });
+  } catch (e) {
+    console.warn("track-recording err", e);
+  }
+}
+
+export async function trackEvent(event_type: string, payload: Record<string, any> = {}) {
+  if (!currentSessionId) return;
+  try {
+    await supabase.functions.invoke("track-event", {
+      body: {
+        session_id: currentSessionId,
+        event_type,
+        payload,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+      },
+    });
+  } catch (e) {
+    console.warn("track-event err", e);
+  }
+}
+
+export function getSessionId() {
+  return currentSessionId;
+}
