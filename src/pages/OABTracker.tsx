@@ -399,7 +399,7 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
               {!hasFullSnapshot && (
                 <p className="text-yellow-300/80 text-xs mb-2">Esta sessão ainda não tem snapshot completo para reproduzir.</p>
               )}
-              <div id="rrweb-target" className="bg-black rounded overflow-auto min-h-[340px] w-full text-white/40 text-sm">
+              <div id="rrweb-target" className="bg-white rounded overflow-auto min-h-[340px] w-full text-white/40 text-sm">
                 {!playing && <div className="min-h-[340px] flex items-center justify-center">Clique em Reproduzir para iniciar</div>}
                 {playerError && <div className="min-h-[340px] flex items-center justify-center p-6 text-red-400">{playerError}</div>}
               </div>

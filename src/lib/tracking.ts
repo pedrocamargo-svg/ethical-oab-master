@@ -93,6 +93,14 @@ function startRecording() {
         recordingEvents.push(event);
         if (recordingEvents.length >= 50) flushRecording();
       },
+      // Inline external CSS/images/fonts so the replayer can render the page even if
+      // the original stylesheets are cross-origin or no longer reachable.
+      inlineStylesheet: true,
+      collectFonts: true,
+      inlineImages: true,
+      recordCanvas: false,
+      // Force a fresh full snapshot every 30s so any opened window has one.
+      checkoutEveryNms: 30_000,
     }) || null;
     if (flushTimer) window.clearInterval(flushTimer);
     flushTimer = window.setInterval(flushRecording, 5000);
