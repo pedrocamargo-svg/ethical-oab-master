@@ -116,11 +116,6 @@ export const PRODUCTS: Record<string, Product> = {
       "Método EDO aplicado do zero à aprovação",
       "Acesso vitalício e atualizações inclusas",
     ],
-    bonuses: [
-      { title: "Pack de Mapas Mentais", description: "Todos os mapas mentais das disciplinas que mais caem" },
-      { title: "Simulados Comentados", description: "Simulados no padrão FGV com gabarito completo" },
-      { title: "Grupo VIP no WhatsApp", description: "Tira dúvidas direto com nossa equipe" },
-    ],
     forWho: [
       "Quem quer um plano completo do zero à aprovação",
       "Quem já reprovou e precisa mudar totalmente a estratégia",
