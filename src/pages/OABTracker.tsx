@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Circle, Lock, Play, RefreshCw, Search, ShoppingCart, Trash2, X } from "lucide-react";
-import "rrweb-player/dist/style.css";
+import { CheckCircle2, Circle, Flame, Lock, RefreshCw, Search, Trash2, X } from "lucide-react";
+
 
 
 const TOKEN_KEY = "oab_admin_token";
@@ -174,6 +174,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [showDelete, setShowDelete] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -208,8 +209,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
           <p className="text-white/50 text-sm">Painel de rastreamento · {getFunnelLabel(funnel)}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20"><RefreshCw className="w-4 h-4" /></button>
-          <button onClick={() => setShowDelete(true)} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40"><Trash2 className="w-4 h-4" /></button>
+          <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20" title="Recarregar"><RefreshCw className="w-4 h-4" /></button>
+          <button onClick={() => setShowHeatmap(true)} className="p-2 bg-orange-600/20 text-orange-300 rounded-lg hover:bg-orange-600/40" title="Mapa de calor"><Flame className="w-4 h-4" /></button>
+          <button onClick={() => setShowDelete(true)} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40" title="Deletar"><Trash2 className="w-4 h-4" /></button>
           <select value={funnel} onChange={(e) => setFunnel(e.target.value)} className="bg-white/10 rounded-lg px-3 py-2 text-sm border border-white/10">
             {FUNNELS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
           </select>
@@ -290,6 +292,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       {selected && <SessionModal session={selected} onClose={() => setSelected(null)} />}
       {showDelete && <DeleteModal onClose={() => setShowDelete(false)} onDone={() => { setShowDelete(false); load(); }} />}
+      {showHeatmap && <HeatmapModal funnel={funnel} range={range} onClose={() => setShowHeatmap(false)} />}
     </main>
   );
 };
@@ -303,77 +306,13 @@ const Metric = ({ label, value }: { label: string; value: any }) => (
 
 const SessionModal = ({ session, onClose }: { session: any; onClose: () => void }) => {
   const [detail, setDetail] = useState<any>(null);
-  const [playing, setPlaying] = useState(false);
-  const [playerError, setPlayerError] = useState("");
 
   useEffect(() => {
     setDetail(null);
-    setPlaying(false);
-    setPlayerError("");
-    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [], recording: [] }));
+    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [] }));
   }, [session.id]);
 
   const events = detail?.events ?? [];
-  const recording = Array.isArray(detail?.recording)
-    ? detail.recording
-        .filter((ev: any) => ev && typeof ev.type === "number" && typeof ev.timestamp === "number")
-        .sort((a: any, b: any) => a.timestamp - b.timestamp)
-    : [];
-  const hasFullSnapshot = recording.some((ev: any) => ev.type === 2);
-  const replayRecording = hasFullSnapshot ? recording.slice(recording.findIndex((ev: any) => ev.type === 2)) : recording;
-
-  useEffect(() => {
-    if (!playing || !replayRecording.length) return;
-    let player: any;
-    let cancelled = false;
-    (async () => {
-      try {
-        setPlayerError("");
-        const mod: any = await import("rrweb");
-        if (cancelled) return;
-        const Replayer = mod.Replayer;
-        const target = document.getElementById("rrweb-target");
-        if (!target) return;
-        target.innerHTML = "";
-        player = new Replayer(replayRecording, {
-          root: target,
-          skipInactive: true,
-          showWarning: false,
-          showDebug: false,
-          mouseTail: false,
-        });
-        player.play();
-        window.setTimeout(() => {
-          const wrapper = target.querySelector<HTMLElement>(".replayer-wrapper");
-          const iframe = target.querySelector<HTMLIFrameElement>("iframe");
-          if (wrapper && iframe) {
-            const targetWidth = Math.max(target.clientWidth, 320);
-            const frameWidth = Number(iframe.getAttribute("width")) || iframe.offsetWidth || 1280;
-            const frameHeight = Number(iframe.getAttribute("height")) || iframe.offsetHeight || 720;
-            const scale = Math.min(targetWidth / frameWidth, 1);
-            const scaledHeight = Math.max(340, Math.ceil(frameHeight * scale));
-            target.style.position = "relative";
-            target.style.height = `${scaledHeight}px`;
-            target.style.overflow = "hidden";
-            wrapper.style.position = "absolute";
-            wrapper.style.left = `${Math.max(0, (targetWidth - frameWidth * scale) / 2)}px`;
-            wrapper.style.top = `${Math.max(0, (scaledHeight - frameHeight * scale) / 2)}px`;
-            wrapper.style.transformOrigin = "top left";
-            wrapper.style.transform = `scale(${scale})`;
-          }
-          if (!cancelled && !target.querySelector("iframe")) {
-            setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
-          }
-        }, 800);
-      } catch (err) {
-        console.error("rrweb-player error", err);
-        setPlayerError("Não foi possível carregar o player desta sessão.");
-        const target = document.getElementById("rrweb-target");
-        if (target) target.innerHTML = '';
-      }
-    })();
-    return () => { cancelled = true; try { player?.destroy?.(); } catch {} };
-  }, [playing, replayRecording.length]);
 
   const formatPayload = (p: any) => {
     if (!p || typeof p !== "object") return String(p ?? "");
@@ -398,27 +337,6 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         </div>
         <div className="p-6">
           {!detail && <p className="text-white/50 text-sm mb-4">Carregando detalhes...</p>}
-
-          {recording.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-bold">Gravação da sessão</h3>
-                <span className="text-white/40 text-xs">{recording.length} eventos</span>
-                {!playing && (
-                  <button onClick={() => setPlaying(true)} disabled={!hasFullSnapshot} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1 ml-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                    <Play className="w-3 h-3" /> Reproduzir
-                  </button>
-                )}
-              </div>
-              {!hasFullSnapshot && (
-                <p className="text-yellow-300/80 text-xs mb-2">Esta sessão ainda não tem snapshot completo para reproduzir.</p>
-              )}
-              <div id="rrweb-target" className="bg-white rounded overflow-auto min-h-[340px] w-full text-white/40 text-sm">
-                {!playing && <div className="min-h-[340px] flex items-center justify-center">Clique em Reproduzir para iniciar</div>}
-                {playerError && <div className="min-h-[340px] flex items-center justify-center p-6 text-red-400">{playerError}</div>}
-              </div>
-            </div>
-          )}
 
           <FunnelProgress session={session} events={events} />
 
@@ -470,7 +388,7 @@ const FunnelProgress = ({ session, events }: { session: any; events: any[] }) =>
           const isCheckout = s.event === "initiate_checkout";
           return (
             <div key={`${s.step ?? s.event}-${i}`} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${done ? "bg-green-500/15 border-green-500/40 text-green-100" : "bg-white/5 border-white/10 text-white/45"}`}>
-              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : isCheckout ? <ShoppingCart className="w-4 h-4 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
+              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
               <span className="truncate">{s.label}</span>
             </div>
           );
@@ -525,6 +443,116 @@ const DeleteModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
     </div>
   );
 };
+
+const HeatmapModal = ({ funnel, range, onClose }: { funnel: string; range: string; onClose: () => void }) => {
+  const [pages, setPages] = useState<{ path: string; count: number }[]>([]);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [clicks, setClicks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const canvasRef = useState<HTMLCanvasElement | null>(null);
+
+  const rangeFrom = () => {
+    const now = new Date();
+    if (range === "today") return new Date(now.setHours(0,0,0,0)).toISOString();
+    if (range === "7d") return new Date(Date.now() - 7*86400000).toISOString();
+    if (range === "30d") return new Date(Date.now() - 30*86400000).toISOString();
+    if (range === "month") return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    return undefined;
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    callAdmin("heatmap", { funnel, from: rangeFrom() })
+      .then((res) => { setPages(res.pages ?? []); })
+      .finally(() => setLoading(false));
+  }, [funnel, range]);
+
+  const openPage = async (path: string) => {
+    setSelectedPath(path);
+    setClicks([]);
+    const res = await callAdmin("heatmap", { funnel, from: rangeFrom(), path });
+    setClicks(res.clicks ?? []);
+  };
+
+  useEffect(() => {
+    if (!selectedPath) return;
+    const canvas = document.getElementById("heatmap-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const W = canvas.width = 900;
+    // find max vh in the data for height
+    const maxVh = Math.max(600, ...clicks.map((c) => c.vh || 0));
+    const H = canvas.height = Math.min(4000, maxVh);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#0f1116";
+    ctx.fillRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    for (let x = 0; x <= W; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += 60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // dots (additive blending)
+    ctx.globalCompositeOperation = "lighter";
+    for (const c of clicks) {
+      const x = (c.x_pct ?? 0) * W;
+      const y = (c.y_pct ?? 0) * H;
+      const r = 30;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, "rgba(255,80,40,0.55)");
+      g.addColorStop(0.5, "rgba(255,180,40,0.25)");
+      g.addColorStop(1, "rgba(255,255,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }, [selectedPath, clicks]);
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Flame className="w-5 h-5 text-orange-400" />
+            <h2 className="font-bold text-lg">Mapa de Calor · {getFunnelLabel(funnel)}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="flex-1 overflow-auto grid md:grid-cols-[280px_1fr]">
+          <aside className="border-r border-white/10 p-3 overflow-y-auto max-h-[70vh]">
+            <div className="text-xs uppercase text-white/50 mb-2">Páginas ({pages.length})</div>
+            {loading && <p className="text-white/50 text-sm">Carregando...</p>}
+            {!loading && pages.length === 0 && <p className="text-white/40 text-sm">Sem cliques registrados neste período.</p>}
+            <ul className="space-y-1">
+              {pages.map((p) => (
+                <li key={p.path}>
+                  <button onClick={() => openPage(p.path)} className={`w-full text-left px-3 py-2 rounded text-sm ${selectedPath === p.path ? "bg-orange-600/30 text-orange-200" : "hover:bg-white/5 text-white/80"}`}>
+                    <div className="truncate">{p.path}</div>
+                    <div className="text-xs text-white/50">{p.count} cliques</div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+          <section className="p-4 overflow-auto">
+            {!selectedPath && <p className="text-white/50 text-sm">Selecione uma página à esquerda para ver o mapa de calor.</p>}
+            {selectedPath && (
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="text-sm text-white/70 truncate">{selectedPath}</div>
+                  <div className="text-xs text-white/50">{clicks.length} cliques</div>
+                </div>
+                <canvas id="heatmap-canvas" className="w-full max-w-full rounded border border-white/10" />
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 
 const OABTracker = () => {
   const [auth, setAuth] = useState(!!sessionStorage.getItem(TOKEN_KEY));
