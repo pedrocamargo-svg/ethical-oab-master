@@ -174,6 +174,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [showDelete, setShowDelete] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const load = async () => {
     setLoading(true);
