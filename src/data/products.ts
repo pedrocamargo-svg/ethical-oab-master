@@ -144,3 +144,11 @@ export function getTierFromQuery(product: Product, param?: string | null): Tier 
   const found = product.tiers.find((t) => Math.abs(t.price - asNumber) < 0.01);
   return found ?? product.tiers[Math.floor(product.tiers.length / 2)];
 }
+
+export function getMeetCta(product: Product): string {
+  const starts = product.name.toLowerCase();
+  const article =
+    starts.startsWith("mapas") || starts.startsWith("36") ? "os" :
+    starts.startsWith("50") ? "as" : "o";
+  return `Quero conhecer ${article} ${product.name}`;
+}

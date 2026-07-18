@@ -9,7 +9,7 @@ import {
   QuizBigChoice,
 } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent } from "@/lib/tracking";
-import { PRODUCTS, pickTierForBudget } from "@/data/products";
+import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import dep1 from "@/assets/depoimento1.jpeg";
 import dep2 from "@/assets/depoimento2.jpeg";
@@ -251,7 +251,7 @@ const Quiz2 = () => {
       <QuizButton onClick={() => {
         trackEvent("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
         nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}`);
-      }}>QUERO ACESSAR AGORA →</QuizButton>
+      }}>{getMeetCta(recProduct)} →</QuizButton>
     </>,
   ];
 
