@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Trash2, Play, X, Search, RefreshCw } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Play, RefreshCw, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import "rrweb-player/dist/style.css";
 
 
@@ -35,6 +35,89 @@ const FUNNELS = [
   { key: "product:36-tpps-etica", label: "36 TPPs" },
   { key: "product:mapa-aprovacao", label: "Mapa da Aprovação" },
 ];
+
+type FunnelStep = {
+  step?: number;
+  event?: string;
+  label: string;
+};
+
+const FUNNEL_STEPS: Record<string, FunnelStep[]> = {
+  quiz1: [
+    { step: 0, label: "Começou o quiz" },
+    { step: 1, label: "Situação na OAB" },
+    { step: 2, label: "Reprovações / primeira vez" },
+    { step: 3, label: "Maior dificuldade" },
+    { step: 4, label: "Motivação" },
+    { step: 5, label: "Plano sendo criado" },
+    { step: 6, label: "Conheceu João Pedro" },
+    { step: 7, label: "Orçamento" },
+    { step: 8, label: "Recebeu recomendação" },
+    { event: "quiz_recommend", label: "Clicou na recomendação" },
+    { event: "initiate_checkout", label: "Foi para o checkout" },
+  ],
+  quiz2: [
+    { step: 0, label: "Começou pelo depoimento" },
+    { step: 1, label: "Situação atual" },
+    { step: 2, label: "Reprovações" },
+    { step: 3, label: "O que falta" },
+    { step: 4, label: "Apresentação / nome" },
+    { step: 5, label: "Pronto para estudar" },
+    { step: 6, label: "Concordou com direcionamento" },
+    { step: 7, label: "Aceitou aplicar" },
+    { step: 8, label: "Viu depoimentos" },
+    { step: 9, label: "Objetivo" },
+    { step: 10, label: "Visão de 30 dias" },
+    { step: 11, label: "Perfil analisado" },
+    { step: 12, label: "Sistema EDO" },
+    { step: 13, label: "Orçamento" },
+    { step: 14, label: "Compromisso" },
+    { step: 15, label: "Perfil ideal" },
+    { step: 16, label: "Plano pronto" },
+    { event: "quiz_recommend", label: "Clicou na recomendação" },
+    { event: "initiate_checkout", label: "Foi para o checkout" },
+  ],
+};
+
+const PRODUCT_STEPS: FunnelStep[] = [
+  { event: "initiate_checkout", label: "Clicou no checkout" },
+];
+
+function getFunnelLabel(key: string) {
+  return FUNNELS.find((f) => f.key === key)?.label ?? key;
+}
+
+function getStepsForFunnel(funnel: string) {
+  if (FUNNEL_STEPS[funnel]) return FUNNEL_STEPS[funnel];
+  if (funnel?.startsWith("product:")) return PRODUCT_STEPS;
+  return [];
+}
+
+function getReachedMap(events: any[] = []) {
+  const reachedSteps = new Set<number>();
+  const reachedEvents = new Set<string>();
+  for (const ev of events) {
+    if (ev?.event_type) reachedEvents.add(ev.event_type);
+    const step = Number(ev?.payload?.step);
+    if (Number.isFinite(step)) reachedSteps.add(step);
+  }
+  return { reachedSteps, reachedEvents };
+}
+
+function getLastReadableStep(session: any) {
+  const raw = String(session?.last_step ?? "");
+  const steps = getStepsForFunnel(session?.funnel);
+  const stepMatch = raw.match(/step\s+(\d+)/i);
+  if (stepMatch) {
+    const found = steps.find((s) => s.step === Number(stepMatch[1]));
+    if (found) return found.label;
+  }
+  const eventMatch = steps.find((s) => s.event === raw);
+  if (eventMatch) return eventMatch.label;
+  if (raw === "quiz_recommend") return "Clicou na recomendação";
+  if (raw === "initiate_checkout") return "Foi para o checkout";
+  return raw || "-";
+}
 
 const Login = ({ onOk }: { onOk: () => void }) => {
   const [num, setNum] = useState("");
