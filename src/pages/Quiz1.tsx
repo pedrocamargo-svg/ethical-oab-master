@@ -296,7 +296,7 @@ const RecommendationStep = ({ answers, onGo }: { answers: Answers; onGo: (slug: 
         <div className="text-3xl sm:text-4xl font-extrabold text-green-400 text-center mb-2">R$ {rec.price.toFixed(2).replace(".", ",")}</div>
         <p className="text-center text-white/60 text-sm">Oferta personalizada para o seu perfil</p>
       </div>
-      <QuizButton onClick={() => onGo(rec.slug, rec.price)}>{product.cta} →</QuizButton>
+      <QuizButton onClick={() => onGo(rec.slug, rec.price)}>{getMeetCta(product)} →</QuizButton>
     </>
   );
 };

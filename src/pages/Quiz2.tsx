@@ -251,7 +251,7 @@ const Quiz2 = () => {
       <QuizButton onClick={() => {
         trackEvent("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
         nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}`);
-      }}>QUERO ACESSAR AGORA →</QuizButton>
+      }}>{getMeetCta(recProduct)} →</QuizButton>
     </>,
   ];
 
