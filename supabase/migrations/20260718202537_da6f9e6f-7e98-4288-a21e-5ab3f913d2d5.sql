@@ -1,0 +1,1 @@
+ALTER TABLE public.tracking_sessions ADD COLUMN IF NOT EXISTS utm_params jsonb NOT NULL DEFAULT '{}'::jsonb;

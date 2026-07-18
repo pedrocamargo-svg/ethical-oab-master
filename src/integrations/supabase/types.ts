@@ -117,6 +117,7 @@ export type Database = {
           url: string | null
           user_agent: string | null
           user_label: string
+          utm_params: Json
         }
         Insert: {
           access_count?: number
@@ -135,6 +136,7 @@ export type Database = {
           url?: string | null
           user_agent?: string | null
           user_label: string
+          utm_params?: Json
         }
         Update: {
           access_count?: number
@@ -153,6 +155,7 @@ export type Database = {
           url?: string | null
           user_agent?: string | null
           user_label?: string
+          utm_params?: Json
         }
         Relationships: []
       }

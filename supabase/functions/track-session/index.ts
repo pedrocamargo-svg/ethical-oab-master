@@ -6,11 +6,37 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+// Parse tracking parameters (utm_*, click IDs, utmify's sck/xcod, etc.) from a URL.
+function extractUtms(rawUrl: string | undefined | null): Record<string, string> {
+  if (!rawUrl) return {};
+  try {
+    const u = new URL(rawUrl);
+    const out: Record<string, string> = {};
+    u.searchParams.forEach((value, key) => {
+      const k = key.toLowerCase();
+      if (
+        k.startsWith('utm_') ||
+        k === 'sck' || k === 'xcod' ||
+        k === 'fbclid' || k === 'gclid' || k === 'ttclid' || k === 'msclkid' ||
+        k === 'ref' || k === 'src'
+      ) {
+        if (value && !out[k]) out[k] = value.slice(0, 200);
+      }
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const body = await req.json();
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const incomingUtms = extractUtms(body.url);
+
+
 
     let sessionId = body.session_id as string | undefined;
     let userLabel = body.user_label as string | undefined;
@@ -23,14 +49,18 @@ Deno.serve(async (req) => {
         const lastSeenMs = new Date(existing.last_seen_at).getTime();
         const isNewVisit = nowMs - lastSeenMs > 5 * 60 * 1000; // 5 min gap = novo acesso
         const dur = Math.max(existing.duration_seconds, Math.floor((nowMs - new Date(existing.started_at).getTime()) / 1000));
+        // Merge UTMs: keep first-touch values, only add keys that are missing.
+        const mergedUtms = { ...incomingUtms, ...(existing.utm_params ?? {}) };
         await supabase.from('tracking_sessions').update({
           last_seen_at: new Date().toISOString(),
           access_count: isNewVisit ? existing.access_count + 1 : existing.access_count,
           duration_seconds: dur,
           url: body.url ?? existing.url,
+          utm_params: mergedUtms,
         }).eq('id', sessionId);
         return new Response(JSON.stringify({ session_id: sessionId, user_label: existing.user_label }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
+
     }
 
     if (!userLabel) {
@@ -50,7 +80,9 @@ Deno.serve(async (req) => {
       country: body.country,
       user_agent: body.user_agent,
       url: body.url,
+      utm_params: incomingUtms,
     }).select('id, user_label').single();
+
 
     if (error) throw error;
 
