@@ -103,10 +103,10 @@ function startRecording() {
       checkoutEveryNms: 30_000,
     }) || null;
     if (flushTimer) window.clearInterval(flushTimer);
-    flushTimer = window.setInterval(flushRecording, 5000);
-    window.addEventListener("pagehide", flushRecording, { capture: true });
+    flushTimer = window.setInterval(() => flushRecording(false), 5000);
+    window.addEventListener("pagehide", () => flushRecording(true), { capture: true });
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") flushRecording();
+      if (document.visibilityState === "hidden") flushRecording(true);
     });
   }).catch(() => {
     // rrweb optional
