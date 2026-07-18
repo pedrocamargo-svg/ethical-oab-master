@@ -42,6 +42,7 @@ export async function initTracking(meta: SessionMeta) {
     }
   }
   initedFunnel = meta.funnel;
+  startRecording();
   initPromise = (async () => {
   // Reuse session only inside the same funnel. Product pages and quizzes get separate rows.
   const sessionKey = getSessionKey(meta.funnel);
@@ -80,9 +81,13 @@ export async function initTracking(meta: SessionMeta) {
     if (ev) await sendEvent(ev.event_type, ev.payload);
   }
 
-  // Start rrweb recording lazily
-  try {
-    const rrweb = await import("rrweb");
+  })();
+  return initPromise;
+}
+
+function startRecording() {
+  if (stopFn) return;
+  import("rrweb").then((rrweb) => {
     stopFn = rrweb.record({
       emit(event) {
         recordingEvents.push(event);
@@ -90,12 +95,14 @@ export async function initTracking(meta: SessionMeta) {
       },
     }) || null;
     if (flushTimer) window.clearInterval(flushTimer);
-    flushTimer = window.setInterval(flushRecording, 15000);
-  } catch (e) {
+    flushTimer = window.setInterval(flushRecording, 5000);
+    window.addEventListener("pagehide", flushRecording, { capture: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flushRecording();
+    });
+  }).catch(() => {
     // rrweb optional
-  }
-  })();
-  return initPromise;
+  });
 }
 
 async function flushRecording() {
