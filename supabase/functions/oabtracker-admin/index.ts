@@ -70,12 +70,13 @@ Deno.serve(async (req) => {
       if (error) throw error;
 
       // metrics
-      const total = data?.length ?? 0;
+      const total = data?.reduce((sum: number, r: any) => sum + (Number(r.access_count) || 1), 0) ?? 0;
+      const sessions = data?.length ?? 0;
       const sold = data?.filter((r: any) => r.sale_status === 'sold').length ?? 0;
-      const completedQuiz = data?.filter((r: any) => r.last_step?.includes('recommend') || r.last_step?.includes('step 8') || r.last_step?.includes('step 16')).length ?? 0;
+      const completedQuiz = data?.filter((r: any) => r.last_step?.includes('recommend') || r.last_step?.includes('initiate_checkout') || r.last_step?.includes('step 8') || r.last_step?.includes('step 16')).length ?? 0;
       return new Response(JSON.stringify({
         sessions: data,
-        metrics: { total, sold, completed_quiz: completedQuiz, conversion_rate: total ? sold / total : 0, quiz_completion_rate: total ? completedQuiz / total : 0 },
+        metrics: { total, sessions, sold, completed_quiz: completedQuiz, conversion_rate: sessions ? sold / sessions : 0, quiz_completion_rate: sessions ? completedQuiz / sessions : 0 },
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -86,7 +87,10 @@ Deno.serve(async (req) => {
         supabase.from('tracking_events').select('*').eq('session_id', session_id).order('created_at'),
         supabase.from('tracking_recordings').select('events').eq('session_id', session_id).order('created_at'),
       ]);
-      const merged = (recs ?? []).flatMap((r: any) => r.events ?? []);
+      const merged = (recs ?? [])
+        .flatMap((r: any) => Array.isArray(r.events) ? r.events : [])
+        .filter((ev: any) => ev && typeof ev.type === 'number' && typeof ev.timestamp === 'number')
+        .sort((a: any, b: any) => a.timestamp - b.timestamp);
       return new Response(JSON.stringify({ session, events, recording: merged }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 

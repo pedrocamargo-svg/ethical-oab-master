@@ -1,7 +1,7 @@
 // Client-side tracking helper. Registers session on load, logs events, records rrweb, and pings server.
 import { supabase } from "@/integrations/supabase/client";
 
-const SESSION_KEY = "oab_tracking_session_id";
+const SESSION_KEY_PREFIX = "oab_tracking_session_id:";
 const USER_LABEL_KEY = "oab_tracking_user_label";
 
 type SessionMeta = {
@@ -13,6 +13,12 @@ let recordingEvents: any[] = [];
 let stopFn: (() => void) | null = null;
 let initPromise: Promise<void> | null = null;
 let initedFunnel: string | null = null;
+let flushTimer: number | null = null;
+const pendingEvents: { event_type: string; payload: Record<string, any> }[] = [];
+
+function getSessionKey(funnel: string) {
+  return `${SESSION_KEY_PREFIX}${funnel}`;
+}
 
 async function getGeo() {
   try {
@@ -28,10 +34,18 @@ export async function initTracking(meta: SessionMeta) {
   if (typeof window === "undefined") return;
   // Prevent double-invocation (React StrictMode / remounts) for the same funnel
   if (initedFunnel === meta.funnel && initPromise) return initPromise;
+  if (initedFunnel !== meta.funnel) {
+    currentSessionId = null;
+    if (stopFn) {
+      try { stopFn(); } catch {}
+      stopFn = null;
+    }
+  }
   initedFunnel = meta.funnel;
   initPromise = (async () => {
-  // Reuse session if same funnel & recent (30 min)
-  const existing = sessionStorage.getItem(SESSION_KEY);
+  // Reuse session only inside the same funnel. Product pages and quizzes get separate rows.
+  const sessionKey = getSessionKey(meta.funnel);
+  const existing = sessionStorage.getItem(sessionKey);
   if (existing) {
     currentSessionId = existing;
   }
@@ -54,11 +68,16 @@ export async function initTracking(meta: SessionMeta) {
     });
     if (!error && data?.session_id) {
       currentSessionId = data.session_id;
-      sessionStorage.setItem(SESSION_KEY, currentSessionId!);
+      sessionStorage.setItem(sessionKey, currentSessionId!);
       if (data.user_label) localStorage.setItem(USER_LABEL_KEY, data.user_label);
     }
   } catch (e) {
     console.warn("track-session err", e);
+  }
+
+  while (pendingEvents.length && currentSessionId) {
+    const ev = pendingEvents.shift();
+    if (ev) await sendEvent(ev.event_type, ev.payload);
   }
 
   // Start rrweb recording lazily
@@ -70,7 +89,8 @@ export async function initTracking(meta: SessionMeta) {
         if (recordingEvents.length >= 50) flushRecording();
       },
     }) || null;
-    setInterval(flushRecording, 15000);
+    if (flushTimer) window.clearInterval(flushTimer);
+    flushTimer = window.setInterval(flushRecording, 15000);
   } catch (e) {
     // rrweb optional
   }
@@ -92,7 +112,14 @@ async function flushRecording() {
 }
 
 export async function trackEvent(event_type: string, payload: Record<string, any> = {}) {
-  if (!currentSessionId) return;
+  if (!currentSessionId) {
+    pendingEvents.push({ event_type, payload });
+    return initPromise;
+  }
+  return sendEvent(event_type, payload);
+}
+
+async function sendEvent(event_type: string, payload: Record<string, any> = {}) {
   try {
     await supabase.functions.invoke("track-event", {
       body: {
