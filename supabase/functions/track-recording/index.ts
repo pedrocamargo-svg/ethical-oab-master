@@ -15,6 +15,20 @@ Deno.serve(async (req) => {
     }
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     await supabase.from('tracking_recordings').insert({ session_id, events });
+
+    const { data: existing } = await supabase
+      .from('tracking_sessions')
+      .select('started_at, duration_seconds')
+      .eq('id', session_id)
+      .maybeSingle();
+    if (existing?.started_at) {
+      const computed = Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000);
+      const duration = Math.max(existing.duration_seconds ?? 0, computed);
+      await supabase.from('tracking_sessions').update({
+        last_seen_at: new Date().toISOString(),
+        duration_seconds: duration,
+      }).eq('id', session_id);
+    }
     return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

@@ -103,24 +103,22 @@ function startRecording() {
       checkoutEveryNms: 30_000,
     }) || null;
     if (flushTimer) window.clearInterval(flushTimer);
-    flushTimer = window.setInterval(flushRecording, 5000);
-    window.addEventListener("pagehide", flushRecording, { capture: true });
+    flushTimer = window.setInterval(() => flushRecording(false), 5000);
+    window.addEventListener("pagehide", () => flushRecording(true), { capture: true });
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") flushRecording();
+      if (document.visibilityState === "hidden") flushRecording(true);
     });
   }).catch(() => {
     // rrweb optional
   });
 }
 
-async function flushRecording() {
+async function flushRecording(useBeacon = false) {
   if (!currentSessionId || recordingEvents.length === 0) return;
   const events = recordingEvents;
   recordingEvents = [];
   try {
-    await supabase.functions.invoke("track-recording", {
-      body: { session_id: currentSessionId, events },
-    });
+    await postFn("track-recording", { session_id: currentSessionId, events }, useBeacon);
   } catch (e) {
     console.warn("track-recording err", e);
   }
@@ -136,17 +134,32 @@ export async function trackEvent(event_type: string, payload: Record<string, any
 
 async function sendEvent(event_type: string, payload: Record<string, any> = {}) {
   try {
-    await supabase.functions.invoke("track-event", {
-      body: {
-        session_id: currentSessionId,
-        event_type,
-        payload,
-        url: typeof window !== "undefined" ? window.location.href : undefined,
-      },
-    });
+    // Flush any pending recording first so the moment of the event is captured.
+    flushRecording(true);
+    await postFn("track-event", {
+      session_id: currentSessionId,
+      event_type,
+      payload,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+    }, true);
   } catch (e) {
     console.warn("track-event err", e);
   }
+}
+
+function postFn(name: string, body: any, keepalive = false) {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${name}`;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify(body),
+    keepalive,
+  });
 }
 
 export function getSessionId() {
