@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Trash2, Play, X, Search, RefreshCw } from "lucide-react";
+import "rrweb-player/dist/style.css";
+
 
 const TOKEN_KEY = "oab_admin_token";
 const FP_KEY = "oab_admin_fp";
