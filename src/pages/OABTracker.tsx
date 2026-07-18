@@ -292,6 +292,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
       {selected && <SessionModal session={selected} onClose={() => setSelected(null)} />}
       {showDelete && <DeleteModal onClose={() => setShowDelete(false)} onDone={() => { setShowDelete(false); load(); }} />}
+      {showHeatmap && <HeatmapModal funnel={funnel} range={range} onClose={() => setShowHeatmap(false)} />}
     </main>
   );
 };
