@@ -444,6 +444,116 @@ const DeleteModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
   );
 };
 
+const HeatmapModal = ({ funnel, range, onClose }: { funnel: string; range: string; onClose: () => void }) => {
+  const [pages, setPages] = useState<{ path: string; count: number }[]>([]);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [clicks, setClicks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const canvasRef = useState<HTMLCanvasElement | null>(null);
+
+  const rangeFrom = () => {
+    const now = new Date();
+    if (range === "today") return new Date(now.setHours(0,0,0,0)).toISOString();
+    if (range === "7d") return new Date(Date.now() - 7*86400000).toISOString();
+    if (range === "30d") return new Date(Date.now() - 30*86400000).toISOString();
+    if (range === "month") return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    return undefined;
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    callAdmin("heatmap", { funnel, from: rangeFrom() })
+      .then((res) => { setPages(res.pages ?? []); })
+      .finally(() => setLoading(false));
+  }, [funnel, range]);
+
+  const openPage = async (path: string) => {
+    setSelectedPath(path);
+    setClicks([]);
+    const res = await callAdmin("heatmap", { funnel, from: rangeFrom(), path });
+    setClicks(res.clicks ?? []);
+  };
+
+  useEffect(() => {
+    if (!selectedPath) return;
+    const canvas = document.getElementById("heatmap-canvas") as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const W = canvas.width = 900;
+    // find max vh in the data for height
+    const maxVh = Math.max(600, ...clicks.map((c) => c.vh || 0));
+    const H = canvas.height = Math.min(4000, maxVh);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#0f1116";
+    ctx.fillRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    for (let x = 0; x <= W; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += 60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // dots (additive blending)
+    ctx.globalCompositeOperation = "lighter";
+    for (const c of clicks) {
+      const x = (c.x_pct ?? 0) * W;
+      const y = (c.y_pct ?? 0) * H;
+      const r = 30;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, "rgba(255,80,40,0.55)");
+      g.addColorStop(0.5, "rgba(255,180,40,0.25)");
+      g.addColorStop(1, "rgba(255,255,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }, [selectedPath, clicks]);
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Flame className="w-5 h-5 text-orange-400" />
+            <h2 className="font-bold text-lg">Mapa de Calor · {getFunnelLabel(funnel)}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="flex-1 overflow-auto grid md:grid-cols-[280px_1fr]">
+          <aside className="border-r border-white/10 p-3 overflow-y-auto max-h-[70vh]">
+            <div className="text-xs uppercase text-white/50 mb-2">Páginas ({pages.length})</div>
+            {loading && <p className="text-white/50 text-sm">Carregando...</p>}
+            {!loading && pages.length === 0 && <p className="text-white/40 text-sm">Sem cliques registrados neste período.</p>}
+            <ul className="space-y-1">
+              {pages.map((p) => (
+                <li key={p.path}>
+                  <button onClick={() => openPage(p.path)} className={`w-full text-left px-3 py-2 rounded text-sm ${selectedPath === p.path ? "bg-orange-600/30 text-orange-200" : "hover:bg-white/5 text-white/80"}`}>
+                    <div className="truncate">{p.path}</div>
+                    <div className="text-xs text-white/50">{p.count} cliques</div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+          <section className="p-4 overflow-auto">
+            {!selectedPath && <p className="text-white/50 text-sm">Selecione uma página à esquerda para ver o mapa de calor.</p>}
+            {selectedPath && (
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="text-sm text-white/70 truncate">{selectedPath}</div>
+                  <div className="text-xs text-white/50">{clicks.length} cliques</div>
+                </div>
+                <canvas id="heatmap-canvas" className="w-full max-w-full rounded border border-white/10" />
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
 const OABTracker = () => {
   const [auth, setAuth] = useState(!!sessionStorage.getItem(TOKEN_KEY));
   const logout = () => { sessionStorage.removeItem(TOKEN_KEY); setAuth(false); };
