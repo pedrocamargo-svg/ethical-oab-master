@@ -98,16 +98,36 @@ Deno.serve(async (req) => {
 
     if (action === 'detail') {
       const { session_id } = body;
-      const [{ data: session }, { data: events }, { data: recs }] = await Promise.all([
+      const [{ data: session }, { data: events }] = await Promise.all([
         supabase.from('tracking_sessions').select('*').eq('id', session_id).maybeSingle(),
-        supabase.from('tracking_events').select('*').eq('session_id', session_id).order('created_at'),
-        supabase.from('tracking_recordings').select('events').eq('session_id', session_id).order('created_at'),
+        supabase.from('tracking_events').select('*').eq('session_id', session_id).neq('event_type', 'heatmap_clicks').order('created_at'),
       ]);
-      const merged = (recs ?? [])
-        .flatMap((r: any) => Array.isArray(r.events) ? r.events : [])
-        .filter((ev: any) => ev && typeof ev.type === 'number' && typeof ev.timestamp === 'number')
-        .sort((a: any, b: any) => a.timestamp - b.timestamp);
-      return new Response(JSON.stringify({ session, events, recording: merged }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ session, events }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    if (action === 'heatmap') {
+      // Aggregate heatmap_clicks across sessions matching the current filter.
+      const { funnel, from, to, path } = body;
+      let sq = supabase.from('tracking_sessions').select('id').limit(2000);
+      if (funnel && funnel !== 'all') sq = sq.eq('funnel', funnel);
+      if (from) sq = sq.gte('started_at', from);
+      if (to) sq = sq.lte('started_at', to);
+      const { data: sess } = await sq;
+      const ids = (sess ?? []).map((r: any) => r.id);
+      if (ids.length === 0) return new Response(JSON.stringify({ pages: [], clicks: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const { data: evts } = await supabase.from('tracking_events').select('payload, url').eq('event_type', 'heatmap_clicks').in('session_id', ids).limit(5000);
+      const pageCounts = new Map<string, number>();
+      const clicks: any[] = [];
+      for (const e of evts ?? []) {
+        const arr = Array.isArray(e.payload?.clicks) ? e.payload.clicks : [];
+        for (const c of arr) {
+          const p = c.path ?? '/';
+          pageCounts.set(p, (pageCounts.get(p) ?? 0) + 1);
+          if (path && p === path) clicks.push(c);
+        }
+      }
+      const pages = Array.from(pageCounts.entries()).map(([path, count]) => ({ path, count })).sort((a, b) => b.count - a.count);
+      return new Response(JSON.stringify({ pages, clicks }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (action === 'update_sale') {
