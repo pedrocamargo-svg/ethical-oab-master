@@ -148,6 +148,35 @@ const ProductLandingPage = () => {
 
       <TestimonialsSection />
 
+      {/* DIA 1 GRÁTIS - só no Mapa da Aprovação */}
+      {product.slug === "mapa-aprovacao" && (
+        <section className="bg-section-alt py-12 sm:py-16">
+          <div className="container max-w-5xl">
+            <div className="text-center mb-8">
+              <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-xs sm:text-sm px-4 py-2 rounded-full uppercase mb-4">
+                Experimente Grátis
+              </span>
+              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl mb-3 text-foreground">
+                Teste o <span className="text-highlight">Dia 1</span> gratuitamente
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+                Clique abaixo e explore o Mapa da Aprovação. Estude o Dia 1 completo, com TPPs, questões e comentários estratégicos — antes mesmo de comprar.
+              </p>
+            </div>
+            <PlatformSimulation />
+            <div className="text-center mt-8">
+              <button
+                onClick={trackAndGo}
+                className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-8 sm:px-10 rounded-full hover:brightness-110 transition-all shadow-lg"
+              >
+                {product.cta}
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+
       {/* PRICING */}
       <section id="pricing" className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24 px-4">
         <div className="container text-center">
