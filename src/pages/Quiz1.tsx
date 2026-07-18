@@ -9,7 +9,7 @@ import {
   QuizSlider,
 } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent } from "@/lib/tracking";
-import { PRODUCTS, pickTierForBudget } from "@/data/products";
+import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import dep1 from "@/assets/depoimento1.jpeg";
 import dep2 from "@/assets/depoimento2.jpeg";
