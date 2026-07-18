@@ -207,26 +207,49 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
   useEffect(() => {
     if (!playing || !detail?.recording?.length) return;
     let player: any;
+    let cancelled = false;
     (async () => {
-      const rrwebPlayer = (await import("rrweb-player" as any)).default;
-      const target = document.getElementById("rrweb-target");
-      if (target) target.innerHTML = "";
-      player = new rrwebPlayer({ target: target!, props: { events: detail.recording, autoPlay: true } });
-    })().catch(() => {
-      // fallback: use rrweb basic Replayer
-      import("rrweb").then((rrweb) => {
+      try {
+        const mod: any = await import("rrweb-player");
+        if (cancelled) return;
+        const rrwebPlayer = mod.default ?? mod;
         const target = document.getElementById("rrweb-target");
-        if (target) target.innerHTML = "";
-        // @ts-ignore
-        new rrweb.Replayer(detail.recording, { root: target });
-      });
-    });
-    return () => { try { player?.$destroy?.(); } catch {} };
+        if (!target) return;
+        target.innerHTML = "";
+        const w = Math.min(target.clientWidth || 800, 1000);
+        player = new rrwebPlayer({
+          target,
+          props: {
+            events: detail.recording,
+            autoPlay: true,
+            showController: true,
+            width: w,
+            height: Math.round(w * 0.6),
+          },
+        });
+      } catch (err) {
+        console.error("rrweb-player error", err);
+        const target = document.getElementById("rrweb-target");
+        if (target) target.innerHTML = '<div class="p-6 text-red-400 text-sm">Não foi possível carregar o player. Verifique se há eventos suficientes.</div>';
+      }
+    })();
+    return () => { cancelled = true; try { player?.$destroy?.(); } catch {} };
   }, [playing, detail]);
+
+  const formatPayload = (p: any) => {
+    if (!p || typeof p !== "object") return String(p ?? "");
+    const parts: string[] = [];
+    for (const [k, v] of Object.entries(p)) {
+      if (v === null || v === undefined || v === "") continue;
+      const val = typeof v === "object" ? JSON.stringify(v) : String(v);
+      parts.push(`${k}: ${val.length > 80 ? val.slice(0, 80) + "…" : val}`);
+    }
+    return parts.join(" · ");
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="p-6 border-b border-white/10 flex justify-between items-start">
           <div>
             <h2 className="font-bold text-xl">{session.user_label}</h2>
@@ -235,29 +258,35 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">
+          {detail?.recording?.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="font-bold">Gravação da sessão</h3>
+                <span className="text-white/40 text-xs">{detail.recording.length} eventos</span>
+                {!playing && (
+                  <button onClick={() => setPlaying(true)} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1 ml-auto">
+                    <Play className="w-3 h-3" /> Reproduzir
+                  </button>
+                )}
+              </div>
+              <div id="rrweb-target" className="bg-black rounded overflow-hidden min-h-[300px] flex items-center justify-center text-white/40 text-sm">
+                {!playing && "Clique em Reproduzir para iniciar"}
+              </div>
+            </div>
+          )}
           <h3 className="font-bold mb-3">Timeline</h3>
-          <div className="space-y-2 mb-6">
+          <div className="space-y-2">
+            {(detail?.events ?? []).length === 0 && <p className="text-white/40 text-sm">Nenhum evento registrado.</p>}
             {(detail?.events ?? []).map((ev: any) => (
-              <div key={ev.id} className="bg-white/5 rounded p-3 text-sm">
-                <div className="flex justify-between text-white/50 text-xs mb-1">
-                  <span>{ev.event_type}</span>
-                  <span>{new Date(ev.created_at).toLocaleTimeString("pt-BR")}</span>
+              <div key={ev.id} className="bg-white/5 rounded-lg p-3 text-sm flex items-start gap-3">
+                <div className="text-white/40 text-xs whitespace-nowrap pt-0.5">{new Date(ev.created_at).toLocaleTimeString("pt-BR")}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-red-400">{ev.event_type}</div>
+                  {ev.payload && <div className="text-white/70 text-xs mt-0.5 break-words">{formatPayload(ev.payload)}</div>}
                 </div>
-                <pre className="text-xs overflow-x-auto">{JSON.stringify(ev.payload, null, 2)}</pre>
               </div>
             ))}
           </div>
-          {detail?.recording?.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-bold">Gravação da sessão</h3>
-                <button onClick={() => setPlaying(true)} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1">
-                  <Play className="w-3 h-3" /> Reproduzir
-                </button>
-              </div>
-              <div id="rrweb-target" className="bg-black rounded overflow-hidden min-h-[300px]" />
-            </div>
-          )}
         </div>
       </div>
     </div>
