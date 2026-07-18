@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Trash2, Play, X, Search, RefreshCw } from "lucide-react";
+import { CheckCircle2, Circle, Lock, Play, RefreshCw, Search, ShoppingCart, Trash2, X } from "lucide-react";
 import "rrweb-player/dist/style.css";
 
 
@@ -35,6 +35,97 @@ const FUNNELS = [
   { key: "product:36-tpps-etica", label: "36 TPPs" },
   { key: "product:mapa-aprovacao", label: "Mapa da Aprovação" },
 ];
+
+type FunnelStep = {
+  step?: number;
+  event?: string;
+  label: string;
+};
+
+const FUNNEL_STEPS: Record<string, FunnelStep[]> = {
+  quiz1: [
+    { step: 0, label: "Começou o quiz" },
+    { step: 1, label: "Situação na OAB" },
+    { step: 2, label: "Reprovações / primeira vez" },
+    { step: 3, label: "Maior dificuldade" },
+    { step: 4, label: "Motivação" },
+    { step: 5, label: "Plano sendo criado" },
+    { step: 6, label: "Conheceu João Pedro" },
+    { step: 7, label: "Orçamento" },
+    { step: 8, label: "Recebeu recomendação" },
+    { event: "quiz_recommend", label: "Clicou na recomendação" },
+    { event: "initiate_checkout", label: "Foi para o checkout" },
+  ],
+  quiz2: [
+    { step: 0, label: "Começou pelo depoimento" },
+    { step: 1, label: "Situação atual" },
+    { step: 2, label: "Reprovações" },
+    { step: 3, label: "O que falta" },
+    { step: 4, label: "Apresentação / nome" },
+    { step: 5, label: "Pronto para estudar" },
+    { step: 6, label: "Concordou com direcionamento" },
+    { step: 7, label: "Aceitou aplicar" },
+    { step: 8, label: "Viu depoimentos" },
+    { step: 9, label: "Objetivo" },
+    { step: 10, label: "Visão de 30 dias" },
+    { step: 11, label: "Perfil analisado" },
+    { step: 12, label: "Sistema EDO" },
+    { step: 13, label: "Orçamento" },
+    { step: 14, label: "Compromisso" },
+    { step: 15, label: "Perfil ideal" },
+    { step: 16, label: "Plano pronto" },
+    { event: "quiz_recommend", label: "Clicou na recomendação" },
+    { event: "initiate_checkout", label: "Foi para o checkout" },
+  ],
+};
+
+const PRODUCT_STEPS: FunnelStep[] = [
+  { event: "initiate_checkout", label: "Clicou no checkout" },
+];
+
+function getFunnelLabel(key: string) {
+  return FUNNELS.find((f) => f.key === key)?.label ?? key;
+}
+
+function getStepsForFunnel(funnel: string) {
+  if (FUNNEL_STEPS[funnel]) return FUNNEL_STEPS[funnel];
+  if (funnel?.startsWith("product:")) return PRODUCT_STEPS;
+  return [];
+}
+
+function getReachedMap(events: any[] = []) {
+  const reachedSteps = new Set<number>();
+  const reachedEvents = new Set<string>();
+  let highestStep = -1;
+  for (const ev of events) {
+    if (ev?.event_type) reachedEvents.add(ev.event_type);
+    const step = Number(ev?.payload?.step);
+    if (Number.isFinite(step)) {
+      reachedSteps.add(step);
+      highestStep = Math.max(highestStep, step);
+    }
+  }
+  // If an early event was lost before the session finished registering, show the path reached up to the latest known step.
+  for (let i = 0; i <= highestStep; i += 1) {
+    reachedSteps.add(i);
+  }
+  return { reachedSteps, reachedEvents };
+}
+
+function getLastReadableStep(session: any) {
+  const raw = String(session?.last_step ?? "");
+  const steps = getStepsForFunnel(session?.funnel);
+  const stepMatch = raw.match(/step\s+(\d+)/i);
+  if (stepMatch) {
+    const found = steps.find((s) => s.step === Number(stepMatch[1]));
+    if (found) return found.label;
+  }
+  const eventMatch = steps.find((s) => s.event === raw);
+  if (eventMatch) return eventMatch.label;
+  if (raw === "quiz_recommend") return "Clicou na recomendação";
+  if (raw === "initiate_checkout") return "Foi para o checkout";
+  return raw || "-";
+}
 
 const Login = ({ onOk }: { onOk: () => void }) => {
   const [num, setNum] = useState("");
@@ -114,7 +205,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
       <header className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="font-heading font-bold text-2xl">OAB Tracker</h1>
-          <p className="text-white/50 text-sm">Painel de rastreamento</p>
+          <p className="text-white/50 text-sm">Painel de rastreamento · {getFunnelLabel(funnel)}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20"><RefreshCw className="w-4 h-4" /></button>
@@ -164,11 +255,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
               {(data.sessions ?? []).map((s: any) => (
                 <tr key={s.id} onClick={() => setSelected(s)} className="border-t border-white/5 hover:bg-white/5 cursor-pointer">
                   <td className="p-3 font-semibold">{s.user_label}</td>
-                  <td className="p-3 text-white/70">{s.funnel}</td>
+                  <td className="p-3 text-white/70">{getFunnelLabel(s.funnel)}</td>
                   <td className="p-3 text-white/70">{s.city ?? "-"}{s.country ? `, ${s.country}` : ""}</td>
                   <td className="p-3">{s.access_count}</td>
                   <td className="p-3">{Math.floor((s.duration_seconds ?? 0) / 60)}m {(s.duration_seconds ?? 0) % 60}s</td>
-                  <td className="p-3 text-white/70 truncate max-w-[160px]">{s.last_step ?? "-"}</td>
+                  <td className="p-3 text-white/70 truncate max-w-[180px]">{getLastReadableStep(s)}</td>
                   <td className="p-3" onClick={(e) => e.stopPropagation()}>
                     <select value={s.sale_status} onChange={(e) => updateSale(s.id, e.target.value)} className={`bg-white/10 rounded px-2 py-1 text-xs ${s.sale_status==="sold"?"text-green-400":s.sale_status==="not_sold"?"text-red-400":"text-yellow-400"}`}>
                       <option value="pending">Pendente</option>
@@ -199,42 +290,76 @@ const Metric = ({ label, value }: { label: string; value: any }) => (
 const SessionModal = ({ session, onClose }: { session: any; onClose: () => void }) => {
   const [detail, setDetail] = useState<any>(null);
   const [playing, setPlaying] = useState(false);
+  const [playerError, setPlayerError] = useState("");
 
   useEffect(() => {
-    callAdmin("detail", { session_id: session.id }).then(setDetail);
+    setDetail(null);
+    setPlaying(false);
+    setPlayerError("");
+    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [], recording: [] }));
   }, [session.id]);
 
+  const events = detail?.events ?? [];
+  const recording = Array.isArray(detail?.recording)
+    ? detail.recording
+        .filter((ev: any) => ev && typeof ev.type === "number" && typeof ev.timestamp === "number")
+        .sort((a: any, b: any) => a.timestamp - b.timestamp)
+    : [];
+  const hasFullSnapshot = recording.some((ev: any) => ev.type === 2);
+  const replayRecording = hasFullSnapshot ? recording.slice(recording.findIndex((ev: any) => ev.type === 2)) : recording;
+
   useEffect(() => {
-    if (!playing || !detail?.recording?.length) return;
+    if (!playing || !replayRecording.length) return;
     let player: any;
     let cancelled = false;
     (async () => {
       try {
-        const mod: any = await import("rrweb-player");
+        setPlayerError("");
+        const mod: any = await import("rrweb");
         if (cancelled) return;
-        const rrwebPlayer = mod.default ?? mod;
+        const Replayer = mod.Replayer;
         const target = document.getElementById("rrweb-target");
         if (!target) return;
         target.innerHTML = "";
-        const w = Math.min(target.clientWidth || 800, 1000);
-        player = new rrwebPlayer({
-          target,
-          props: {
-            events: detail.recording,
-            autoPlay: true,
-            showController: true,
-            width: w,
-            height: Math.round(w * 0.6),
-          },
+        player = new Replayer(replayRecording, {
+          root: target,
+          skipInactive: true,
+          showWarning: false,
+          showDebug: false,
+          mouseTail: false,
         });
+        player.play();
+        window.setTimeout(() => {
+          const wrapper = target.querySelector<HTMLElement>(".replayer-wrapper");
+          const iframe = target.querySelector<HTMLIFrameElement>("iframe");
+          if (wrapper && iframe) {
+            const targetWidth = Math.max(target.clientWidth, 320);
+            const frameWidth = Number(iframe.getAttribute("width")) || iframe.offsetWidth || 1280;
+            const frameHeight = Number(iframe.getAttribute("height")) || iframe.offsetHeight || 720;
+            const scale = Math.min(targetWidth / frameWidth, 1);
+            const scaledHeight = Math.max(340, Math.ceil(frameHeight * scale));
+            target.style.position = "relative";
+            target.style.height = `${scaledHeight}px`;
+            target.style.overflow = "hidden";
+            wrapper.style.position = "absolute";
+            wrapper.style.left = `${Math.max(0, (targetWidth - frameWidth * scale) / 2)}px`;
+            wrapper.style.top = `${Math.max(0, (scaledHeight - frameHeight * scale) / 2)}px`;
+            wrapper.style.transformOrigin = "top left";
+            wrapper.style.transform = `scale(${scale})`;
+          }
+          if (!cancelled && !target.querySelector("iframe")) {
+            setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
+          }
+        }, 800);
       } catch (err) {
         console.error("rrweb-player error", err);
+        setPlayerError("Não foi possível carregar o player desta sessão.");
         const target = document.getElementById("rrweb-target");
-        if (target) target.innerHTML = '<div class="p-6 text-red-400 text-sm">Não foi possível carregar o player. Verifique se há eventos suficientes.</div>';
+        if (target) target.innerHTML = '';
       }
     })();
-    return () => { cancelled = true; try { player?.$destroy?.(); } catch {} };
-  }, [playing, detail]);
+    return () => { cancelled = true; try { player?.destroy?.(); } catch {} };
+  }, [playing, replayRecording.length]);
 
   const formatPayload = (p: any) => {
     if (!p || typeof p !== "object") return String(p ?? "");
@@ -253,41 +378,89 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         <div className="p-6 border-b border-white/10 flex justify-between items-start">
           <div>
             <h2 className="font-bold text-xl">{session.user_label}</h2>
-            <p className="text-white/60 text-sm">{session.funnel} · {session.city ?? "-"} · {session.country ?? "-"}</p>
+            <p className="text-white/60 text-sm">{getFunnelLabel(session.funnel)} · {session.city ?? "-"} · {session.country ?? "-"}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">
-          {detail?.recording?.length > 0 && (
+          {!detail && <p className="text-white/50 text-sm mb-4">Carregando detalhes...</p>}
+
+          {recording.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="font-bold">Gravação da sessão</h3>
-                <span className="text-white/40 text-xs">{detail.recording.length} eventos</span>
+                <span className="text-white/40 text-xs">{recording.length} eventos</span>
                 {!playing && (
-                  <button onClick={() => setPlaying(true)} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1 ml-auto">
+                  <button onClick={() => setPlaying(true)} disabled={!hasFullSnapshot} className="bg-red-600 hover:bg-red-700 rounded px-3 py-1 text-sm flex items-center gap-1 ml-auto disabled:opacity-50 disabled:cursor-not-allowed">
                     <Play className="w-3 h-3" /> Reproduzir
                   </button>
                 )}
               </div>
-              <div id="rrweb-target" className="bg-black rounded overflow-hidden min-h-[300px] flex items-center justify-center text-white/40 text-sm">
-                {!playing && "Clique em Reproduzir para iniciar"}
+              {!hasFullSnapshot && (
+                <p className="text-yellow-300/80 text-xs mb-2">Esta sessão ainda não tem snapshot completo para reproduzir.</p>
+              )}
+              <div id="rrweb-target" className="bg-black rounded overflow-auto min-h-[340px] w-full text-white/40 text-sm">
+                {!playing && <div className="min-h-[340px] flex items-center justify-center">Clique em Reproduzir para iniciar</div>}
+                {playerError && <div className="min-h-[340px] flex items-center justify-center p-6 text-red-400">{playerError}</div>}
               </div>
             </div>
           )}
+
+          <FunnelProgress session={session} events={events} />
+
           <h3 className="font-bold mb-3">Timeline</h3>
           <div className="space-y-2">
-            {(detail?.events ?? []).length === 0 && <p className="text-white/40 text-sm">Nenhum evento registrado.</p>}
-            {(detail?.events ?? []).map((ev: any) => (
+            {events.length === 0 && <p className="text-white/40 text-sm">Nenhum evento registrado.</p>}
+            {events.map((ev: any) => (
               <div key={ev.id} className="bg-white/5 rounded-lg p-3 text-sm flex items-start gap-3">
                 <div className="text-white/40 text-xs whitespace-nowrap pt-0.5">{new Date(ev.created_at).toLocaleTimeString("pt-BR")}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-red-400">{ev.event_type}</div>
+                  <div className="font-semibold text-red-400">{describeEvent(ev, session.funnel)}</div>
                   {ev.payload && <div className="text-white/70 text-xs mt-0.5 break-words">{formatPayload(ev.payload)}</div>}
                 </div>
               </div>
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+function describeEvent(ev: any, funnel: string) {
+  if (ev?.event_type === "quiz_step") {
+    const step = Number(ev?.payload?.step);
+    const found = getStepsForFunnel(funnel).find((s) => s.step === step);
+    return found ? found.label : `Etapa ${Number.isFinite(step) ? step + 1 : "do quiz"}`;
+  }
+  if (ev?.event_type === "quiz_recommend") return "Clicou na recomendação";
+  if (ev?.event_type === "initiate_checkout") return "Foi para o checkout";
+  return ev?.event_type ?? "Evento";
+}
+
+const FunnelProgress = ({ session, events }: { session: any; events: any[] }) => {
+  const steps = getStepsForFunnel(session.funnel);
+  if (steps.length === 0) return null;
+  const { reachedSteps, reachedEvents } = getReachedMap(events);
+  const completed = steps.filter((s) => (s.step !== undefined && reachedSteps.has(s.step)) || (s.event && reachedEvents.has(s.event))).length;
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <h3 className="font-bold">Etapas do funil</h3>
+        <span className="text-white/50 text-xs">{completed}/{steps.length} concluídas</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {steps.map((s, i) => {
+          const done = (s.step !== undefined && reachedSteps.has(s.step)) || Boolean(s.event && reachedEvents.has(s.event));
+          const isCheckout = s.event === "initiate_checkout";
+          return (
+            <div key={`${s.step ?? s.event}-${i}`} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${done ? "bg-green-500/15 border-green-500/40 text-green-100" : "bg-white/5 border-white/10 text-white/45"}`}>
+              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : isCheckout ? <ShoppingCart className="w-4 h-4 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
+              <span className="truncate">{s.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
