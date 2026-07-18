@@ -80,7 +80,9 @@ Deno.serve(async (req) => {
       country: body.country,
       user_agent: body.user_agent,
       url: body.url,
+      utm_params: incomingUtms,
     }).select('id, user_label').single();
+
 
     if (error) throw error;
 
