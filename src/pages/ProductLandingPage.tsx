@@ -25,6 +25,7 @@ const ProductLandingPage = () => {
 
 
   const trackAndGo = () => {
+    trackEvent("initiate_checkout", { slug: product.slug, price: tier.price });
     try {
       // @ts-ignore
       window.fbq?.("track", "InitiateCheckout", { value: tier.price, currency: "BRL" });
@@ -33,6 +34,7 @@ const ProductLandingPage = () => {
     } catch {}
     window.location.href = tier.checkoutUrl;
   };
+
 
   return (
     <main>
