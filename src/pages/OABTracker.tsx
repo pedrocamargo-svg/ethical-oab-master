@@ -96,10 +96,18 @@ function getStepsForFunnel(funnel: string) {
 function getReachedMap(events: any[] = []) {
   const reachedSteps = new Set<number>();
   const reachedEvents = new Set<string>();
+  let highestStep = -1;
   for (const ev of events) {
     if (ev?.event_type) reachedEvents.add(ev.event_type);
     const step = Number(ev?.payload?.step);
-    if (Number.isFinite(step)) reachedSteps.add(step);
+    if (Number.isFinite(step)) {
+      reachedSteps.add(step);
+      highestStep = Math.max(highestStep, step);
+    }
+  }
+  // If an early event was lost before the session finished registering, show the path reached up to the latest known step.
+  for (let i = 0; i <= highestStep; i += 1) {
+    reachedSteps.add(i);
   }
   return { reachedSteps, reachedEvents };
 }
@@ -306,27 +314,25 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
     (async () => {
       try {
         setPlayerError("");
-        const mod: any = await import("rrweb-player");
+        const mod: any = await import("rrweb");
         if (cancelled) return;
-        const rrwebPlayer = mod.default ?? mod;
+        const Replayer = mod.Replayer;
         const target = document.getElementById("rrweb-target");
         if (!target) return;
         target.innerHTML = "";
-        const rect = target.getBoundingClientRect();
-        const w = Math.max(320, Math.min(Math.floor(rect.width || target.clientWidth || 900), 1000));
-        const h = Math.max(320, Math.round(w * 0.58));
-        player = new rrwebPlayer({
-          target,
-          props: {
-            events: recording,
-            autoPlay: true,
-            showController: true,
-            width: w,
-            height: h,
-            skipInactive: true,
-            mouseTail: false,
-          },
+        player = new Replayer(recording, {
+          root: target,
+          skipInactive: true,
+          showWarning: false,
+          showDebug: false,
+          mouseTail: false,
         });
+        player.play();
+        window.setTimeout(() => {
+          if (!cancelled && !target.querySelector("iframe")) {
+            setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
+          }
+        }, 800);
       } catch (err) {
         console.error("rrweb-player error", err);
         setPlayerError("Não foi possível carregar o player desta sessão.");
@@ -334,7 +340,7 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         if (target) target.innerHTML = '';
       }
     })();
-    return () => { cancelled = true; try { player?.$destroy?.(); } catch {} };
+    return () => { cancelled = true; try { player?.destroy?.(); } catch {} };
   }, [playing, recording.length]);
 
   const formatPayload = (p: any) => {
