@@ -11,6 +11,8 @@ type SessionMeta = {
 let currentSessionId: string | null = null;
 let recordingEvents: any[] = [];
 let stopFn: (() => void) | null = null;
+let initPromise: Promise<void> | null = null;
+let initedFunnel: string | null = null;
 
 async function getGeo() {
   try {
@@ -24,6 +26,10 @@ async function getGeo() {
 
 export async function initTracking(meta: SessionMeta) {
   if (typeof window === "undefined") return;
+  // Prevent double-invocation (React StrictMode / remounts) for the same funnel
+  if (initedFunnel === meta.funnel && initPromise) return initPromise;
+  initedFunnel = meta.funnel;
+  initPromise = (async () => {
   // Reuse session if same funnel & recent (30 min)
   const existing = sessionStorage.getItem(SESSION_KEY);
   if (existing) {
@@ -68,6 +74,8 @@ export async function initTracking(meta: SessionMeta) {
   } catch (e) {
     // rrweb optional
   }
+  })();
+  return initPromise;
 }
 
 async function flushRecording() {
