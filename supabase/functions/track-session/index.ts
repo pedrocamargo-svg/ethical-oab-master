@@ -6,11 +6,37 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+// Parse tracking parameters (utm_*, click IDs, utmify's sck/xcod, etc.) from a URL.
+function extractUtms(rawUrl: string | undefined | null): Record<string, string> {
+  if (!rawUrl) return {};
+  try {
+    const u = new URL(rawUrl);
+    const out: Record<string, string> = {};
+    u.searchParams.forEach((value, key) => {
+      const k = key.toLowerCase();
+      if (
+        k.startsWith('utm_') ||
+        k === 'sck' || k === 'xcod' ||
+        k === 'fbclid' || k === 'gclid' || k === 'ttclid' || k === 'msclkid' ||
+        k === 'ref' || k === 'src'
+      ) {
+        if (value && !out[k]) out[k] = value.slice(0, 200);
+      }
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const body = await req.json();
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const incomingUtms = extractUtms(body.url);
+
+
 
     let sessionId = body.session_id as string | undefined;
     let userLabel = body.user_label as string | undefined;
