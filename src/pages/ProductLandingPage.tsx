@@ -52,7 +52,7 @@ const ProductLandingPage = () => {
           </div>
           <div className="text-center mb-6">
             <span className="inline-block bg-highlight text-highlight-foreground font-heading font-bold text-xs sm:text-sm px-4 py-2 rounded-full uppercase">
-              Atualizado para OAB 46
+              100% atualizado
             </span>
           </div>
           <div className="max-w-3xl mx-auto text-center">
