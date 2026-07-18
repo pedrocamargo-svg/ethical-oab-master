@@ -1,0 +1,1 @@
+UPDATE public.oabtracker_auth_attempts SET attempts = 0, locked_until = NULL;
