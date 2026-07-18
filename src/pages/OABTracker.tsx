@@ -306,9 +306,10 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         .sort((a: any, b: any) => a.timestamp - b.timestamp)
     : [];
   const hasFullSnapshot = recording.some((ev: any) => ev.type === 2);
+  const replayRecording = hasFullSnapshot ? recording.slice(recording.findIndex((ev: any) => ev.type === 2)) : recording;
 
   useEffect(() => {
-    if (!playing || !recording.length) return;
+    if (!playing || !replayRecording.length) return;
     let player: any;
     let cancelled = false;
     (async () => {
@@ -320,7 +321,7 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
         const target = document.getElementById("rrweb-target");
         if (!target) return;
         target.innerHTML = "";
-        player = new Replayer(recording, {
+        player = new Replayer(replayRecording, {
           root: target,
           skipInactive: true,
           showWarning: false,
@@ -358,7 +359,7 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
       }
     })();
     return () => { cancelled = true; try { player?.destroy?.(); } catch {} };
-  }, [playing, recording.length]);
+  }, [playing, replayRecording.length]);
 
   const formatPayload = (p: any) => {
     if (!p || typeof p !== "object") return String(p ?? "");
