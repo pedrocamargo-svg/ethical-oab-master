@@ -14,7 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      oabtracker_auth_attempts: {
+        Row: {
+          attempts: number
+          device_fp: string
+          last_attempt_at: string
+          locked_until: string | null
+        }
+        Insert: {
+          attempts?: number
+          device_fp: string
+          last_attempt_at?: string
+          locked_until?: string | null
+        }
+        Update: {
+          attempts?: number
+          device_fp?: string
+          last_attempt_at?: string
+          locked_until?: string | null
+        }
+        Relationships: []
+      }
+      tracking_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: number
+          payload: Json | null
+          session_id: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: number
+          payload?: Json | null
+          session_id: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: number
+          payload?: Json | null
+          session_id?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_recordings: {
+        Row: {
+          created_at: string
+          events: Json
+          id: number
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          events: Json
+          id?: number
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          events?: Json
+          id?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_recordings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_sessions: {
+        Row: {
+          access_count: number
+          city: string | null
+          country: string | null
+          created_at: string
+          duration_seconds: number
+          funnel: string
+          id: string
+          ip: string | null
+          last_seen_at: string
+          last_step: string | null
+          region: string | null
+          sale_status: string
+          started_at: string
+          url: string | null
+          user_agent: string | null
+          user_label: string
+        }
+        Insert: {
+          access_count?: number
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          duration_seconds?: number
+          funnel: string
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          last_step?: string | null
+          region?: string | null
+          sale_status?: string
+          started_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_label: string
+        }
+        Update: {
+          access_count?: number
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          duration_seconds?: number
+          funnel?: string
+          id?: string
+          ip?: string | null
+          last_seen_at?: string
+          last_step?: string | null
+          region?: string | null
+          sale_status?: string
+          started_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_label?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
