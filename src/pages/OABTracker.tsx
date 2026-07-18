@@ -333,15 +333,18 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
           const iframe = target.querySelector<HTMLIFrameElement>("iframe");
           if (wrapper && iframe) {
             const targetWidth = Math.max(target.clientWidth, 320);
-            const targetHeight = Math.max(target.clientHeight, 340);
             const frameWidth = Number(iframe.getAttribute("width")) || iframe.offsetWidth || 1280;
             const frameHeight = Number(iframe.getAttribute("height")) || iframe.offsetHeight || 720;
-            const scale = Math.min(targetWidth / frameWidth, targetHeight / frameHeight, 1);
-            wrapper.style.position = "relative";
-            wrapper.style.left = "50%";
-            wrapper.style.top = "50%";
+            const scale = Math.min(targetWidth / frameWidth, 1);
+            const scaledHeight = Math.max(340, Math.ceil(frameHeight * scale));
+            target.style.position = "relative";
+            target.style.height = `${scaledHeight}px`;
+            target.style.overflow = "hidden";
+            wrapper.style.position = "absolute";
+            wrapper.style.left = `${Math.max(0, (targetWidth - frameWidth * scale) / 2)}px`;
+            wrapper.style.top = `${Math.max(0, (scaledHeight - frameHeight * scale) / 2)}px`;
             wrapper.style.transformOrigin = "top left";
-            wrapper.style.transform = `scale(${scale}) translate(-50%, -50%)`;
+            wrapper.style.transform = `scale(${scale})`;
           }
           if (!cancelled && !target.querySelector("iframe")) {
             setPlayerError("A gravação abriu, mas não encontrou a tela gravada.");
