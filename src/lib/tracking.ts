@@ -11,6 +11,8 @@ type SessionMeta = {
 let currentSessionId: string | null = null;
 let recordingEvents: any[] = [];
 let stopFn: (() => void) | null = null;
+let initPromise: Promise<void> | null = null;
+let initedFunnel: string | null = null;
 
 async function getGeo() {
   try {
