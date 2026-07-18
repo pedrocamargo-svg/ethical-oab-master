@@ -8,7 +8,7 @@ import {
   QuizOptions,
   QuizBigChoice,
 } from "@/components/quiz/QuizShell";
-import { initTracking, trackEvent } from "@/lib/tracking";
+import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
@@ -263,8 +263,8 @@ const Quiz2 = () => {
         <div className="text-3xl sm:text-4xl font-extrabold text-green-400 text-center mb-1">{recTier.priceLabel}</div>
         <p className="text-center text-white/60 text-sm">ou {recTier.installments}</p>
       </div>
-      <QuizButton onClick={() => {
-        trackEvent("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
+      <QuizButton onClick={async () => {
+        await trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
         nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}`);
       }}>{getMeetCta(recProduct)} →</QuizButton>
     </>,
