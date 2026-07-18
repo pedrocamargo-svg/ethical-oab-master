@@ -16,6 +16,8 @@ import dep2 from "@/assets/depoimento2.jpeg";
 import dep3 from "@/assets/depoimento3.jpeg";
 import dep4 from "@/assets/depoimento4.jpeg";
 
+const PRELOAD_IMGS = [joaoPedro, dep1, dep2, dep3, dep4];
+
 type Answers = {
   jaFez?: "reprovei" | "primeira";
   reprovacoes?: number;
@@ -82,7 +84,10 @@ const Quiz1 = () => {
   const [budgetSlider, setBudgetSlider] = useState(50);
   const [sonhoOutro, setSonhoOutro] = useState("");
 
-  useEffect(() => { initTracking({ funnel: "quiz1" }); }, []);
+  useEffect(() => {
+    initTracking({ funnel: "quiz1" });
+    PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
+  }, []);
   useEffect(() => { trackEvent("quiz_step", { funnel: "quiz1", step, answers: a }); }, [step]);
 
   const advance = (patch: Partial<Answers> = {}) => {
