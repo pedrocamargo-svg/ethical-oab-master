@@ -385,7 +385,7 @@ const FunnelProgress = ({ session, events }: { session: any; events: any[] }) =>
           const isCheckout = s.event === "initiate_checkout";
           return (
             <div key={`${s.step ?? s.event}-${i}`} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${done ? "bg-green-500/15 border-green-500/40 text-green-100" : "bg-white/5 border-white/10 text-white/45"}`}>
-              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : isCheckout ? <ShoppingCart className="w-4 h-4 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
+              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
               <span className="truncate">{s.label}</span>
             </div>
           );
