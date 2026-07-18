@@ -19,10 +19,13 @@ Deno.serve(async (req) => {
       // update
       const { data: existing } = await supabase.from('tracking_sessions').select('*').eq('id', sessionId).maybeSingle();
       if (existing) {
-        const dur = Math.max(existing.duration_seconds, Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000));
+        const nowMs = Date.now();
+        const lastSeenMs = new Date(existing.last_seen_at).getTime();
+        const isNewVisit = nowMs - lastSeenMs > 5 * 60 * 1000; // 5 min gap = novo acesso
+        const dur = Math.max(existing.duration_seconds, Math.floor((nowMs - new Date(existing.started_at).getTime()) / 1000));
         await supabase.from('tracking_sessions').update({
           last_seen_at: new Date().toISOString(),
-          access_count: existing.access_count + 1,
+          access_count: isNewVisit ? existing.access_count + 1 : existing.access_count,
           duration_seconds: dur,
           url: body.url ?? existing.url,
         }).eq('id', sessionId);
