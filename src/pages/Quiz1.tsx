@@ -8,7 +8,7 @@ import {
   QuizOptions,
   QuizSlider,
 } from "@/components/quiz/QuizShell";
-import { initTracking, trackEvent } from "@/lib/tracking";
+import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import dep1 from "@/assets/depoimento1.jpeg";
@@ -220,8 +220,8 @@ const Quiz1 = () => {
     </>,
 
     // Parte 9
-    <RecommendationStep answers={a} onGo={(slug, price) => {
-      trackEvent("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
+    <RecommendationStep answers={a} onGo={async (slug, price) => {
+      await trackEventAndFlush("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
       nav(`/produto/${slug}?t=${Math.round(price * 100)}`);
     }} />,
   ];

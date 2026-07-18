@@ -7,7 +7,7 @@ import AboutSection from "@/components/AboutSection";
 import FAQSection from "@/components/FAQSection";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
 import PlatformSimulation from "@/components/PlatformSimulation";
-import { initTracking, trackEvent } from "@/lib/tracking";
+import { initTracking, trackEventAndFlush } from "@/lib/tracking";
 import logo from "@/assets/logo.jpeg";
 
 
@@ -26,8 +26,8 @@ const ProductLandingPage = () => {
   const tier = getTierFromQuery(product, params.get("t"));
 
 
-  const trackAndGo = () => {
-    trackEvent("initiate_checkout", { slug: product.slug, price: tier.price });
+  const trackAndGo = async () => {
+    await trackEventAndFlush("initiate_checkout", { slug: product.slug, price: tier.price });
     try {
       // @ts-ignore
       window.fbq?.("track", "InitiateCheckout", { value: tier.price, currency: "BRL" });
