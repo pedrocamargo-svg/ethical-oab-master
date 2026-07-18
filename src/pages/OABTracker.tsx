@@ -243,6 +243,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 <th className="text-left p-3">User</th>
                 <th className="text-left p-3">Funil</th>
                 <th className="text-left p-3">Cidade</th>
+                <th className="text-left p-3">utm_source</th>
+                <th className="text-left p-3">utm_medium</th>
+                <th className="text-left p-3">utm_campaign</th>
+                <th className="text-left p-3">utm_content</th>
+                <th className="text-left p-3">utm_term</th>
                 <th className="text-left p-3">Acessos</th>
                 <th className="text-left p-3">Tempo</th>
                 <th className="text-left p-3">Último passo</th>
@@ -250,13 +255,21 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={7} className="p-8 text-center text-white/50">Carregando...</td></tr>}
-              {!loading && (data.sessions ?? []).length === 0 && <tr><td colSpan={7} className="p-8 text-center text-white/50">Nenhuma sessão</td></tr>}
-              {(data.sessions ?? []).map((s: any) => (
+              {loading && <tr><td colSpan={12} className="p-8 text-center text-white/50">Carregando...</td></tr>}
+              {!loading && (data.sessions ?? []).length === 0 && <tr><td colSpan={12} className="p-8 text-center text-white/50">Nenhuma sessão</td></tr>}
+              {(data.sessions ?? []).map((s: any) => {
+                const utms = s.utm_params ?? {};
+                const cell = (v: any) => <td className="p-3 text-white/70 truncate max-w-[140px]" title={v || ""}>{v || "-"}</td>;
+                return (
                 <tr key={s.id} onClick={() => setSelected(s)} className="border-t border-white/5 hover:bg-white/5 cursor-pointer">
                   <td className="p-3 font-semibold">{s.user_label}</td>
                   <td className="p-3 text-white/70">{getFunnelLabel(s.funnel)}</td>
                   <td className="p-3 text-white/70">{s.city ?? "-"}{s.country ? `, ${s.country}` : ""}</td>
+                  {cell(utms.utm_source)}
+                  {cell(utms.utm_medium)}
+                  {cell(utms.utm_campaign)}
+                  {cell(utms.utm_content)}
+                  {cell(utms.utm_term)}
                   <td className="p-3">{s.access_count}</td>
                   <td className="p-3">{Math.floor((s.duration_seconds ?? 0) / 60)}m {(s.duration_seconds ?? 0) % 60}s</td>
                   <td className="p-3 text-white/70 truncate max-w-[180px]">{getLastReadableStep(s)}</td>
@@ -268,11 +281,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                     </select>
                   </td>
                 </tr>
-              ))}
+              );})}
             </tbody>
           </table>
         </div>
       </div>
+
 
       {selected && <SessionModal session={selected} onClose={() => setSelected(null)} />}
       {showDelete && <DeleteModal onClose={() => setShowDelete(false)} onDone={() => { setShowDelete(false); load(); }} />}
