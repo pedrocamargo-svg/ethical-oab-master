@@ -1,6 +1,20 @@
 import { CheckCircle, ShieldCheck } from "lucide-react";
 
-const PricingSection = () => {
+type Props = {
+  priceLabel?: string;
+  installments?: string;
+  checkoutUrl?: string;
+  onCtaClick?: () => void;
+  ctaLabel?: string;
+};
+
+const PricingSection = ({
+  priceLabel = "R$ 27,90",
+  installments = "3x de R$ 9,90",
+  checkoutUrl = "https://pay.hub.la/7zGyU7fQEJKlvUVtk1dn",
+  onCtaClick,
+  ctaLabel = "QUERO SER APROVADO",
+}: Props = {}) => {
   return (
     <section id="pricing" className="bg-hero text-hero-foreground py-12 sm:py-16 md:py-24 px-4 sm:px-6">
       <div className="container text-center">
@@ -22,19 +36,29 @@ const PricingSection = () => {
           {/* Price */}
           <div className="py-10 px-6">
             <div className="mb-2">
-              <span className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-highlight">R$ 27,90</span>
+              <span className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-highlight">{priceLabel}</span>
               <span className="text-muted-foreground text-lg ml-2">à vista</span>
             </div>
             <p className="text-muted-foreground text-lg mb-8">
-              ou <strong className="text-foreground">3x de R$ 9,90</strong>
+              ou <strong className="text-foreground">{installments}</strong>
             </p>
 
-            <a
-              href="https://pay.hub.la/7zGyU7fQEJKlvUVtk1dn"
-              className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
-            >
-              QUERO SER APROVADO
-            </a>
+            {onCtaClick ? (
+              <button
+                onClick={onCtaClick}
+                className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
+              >
+                {ctaLabel}
+              </button>
+            ) : (
+              <a
+                href={checkoutUrl}
+                className="inline-block w-full max-w-sm bg-highlight text-highlight-foreground font-heading font-bold text-base sm:text-lg py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:brightness-110 transition-all animate-pulse-glow"
+              >
+                {ctaLabel}
+              </a>
+            )}
+
 
             <div className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground">
               <ShieldCheck className="w-4 h-4" />
