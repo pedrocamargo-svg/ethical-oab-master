@@ -7,6 +7,7 @@ import AboutSection from "@/components/AboutSection";
 import FAQSection from "@/components/FAQSection";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
 import PlatformSimulation from "@/components/PlatformSimulation";
+import MaterialPreviewSection from "@/components/MaterialPreviewSection";
 import { initTracking, trackEventAndFlush } from "@/lib/tracking";
 import logo from "@/assets/logo.jpeg";
 
