@@ -138,13 +138,29 @@ Deno.serve(async (req) => {
 
     if (action === 'delete_range') {
       const { from, to } = body;
-      let q = supabase.from('tracking_sessions').delete();
-      if (from) q = q.gte('started_at', from);
-      if (to) q = q.lte('started_at', to);
-      const { error } = await q;
-      if (error) throw error;
-      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      // Find affected sessions first so we can cascade delete their events + recordings.
+      let sq = supabase.from('tracking_sessions').select('id').limit(100000);
+      if (from) sq = sq.gte('started_at', from);
+      if (to) sq = sq.lte('started_at', to);
+      const { data: sess, error: selErr } = await sq;
+      if (selErr) throw selErr;
+      const ids = (sess ?? []).map((r: any) => r.id);
+      let deleted = 0;
+      if (ids.length > 0) {
+        // Delete in chunks to stay within URL limits.
+        const chunk = 200;
+        for (let i = 0; i < ids.length; i += chunk) {
+          const part = ids.slice(i, i + chunk);
+          await supabase.from('tracking_events').delete().in('session_id', part);
+          await supabase.from('tracking_recordings').delete().in('session_id', part);
+          const { error: delErr } = await supabase.from('tracking_sessions').delete().in('id', part);
+          if (delErr) throw delErr;
+          deleted += part.length;
+        }
+      }
+      return new Response(JSON.stringify({ ok: true, deleted }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
 
     return new Response(JSON.stringify({ error: 'unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
