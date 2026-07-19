@@ -147,6 +147,8 @@ const ProductLandingPage = () => {
         </div>
       </section>
 
+      {product.slug === "50-questoes-etica" && <MaterialPreviewSection />}
+
       <TestimonialsSection />
 
       {/* DIA 1 GRÁTIS - só no Mapa da Aprovação */}
