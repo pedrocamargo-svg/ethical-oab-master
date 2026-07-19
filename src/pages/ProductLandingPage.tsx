@@ -8,6 +8,14 @@ import FAQSection from "@/components/FAQSection";
 import FooterDisclaimer from "@/components/FooterDisclaimer";
 import PlatformSimulation from "@/components/PlatformSimulation";
 import MaterialPreviewSection from "@/components/MaterialPreviewSection";
+import HeroSection from "@/components/HeroSection";
+import WhatYouGetSection from "@/components/WhatYouGetSection";
+import BonusSection from "@/components/BonusSection";
+import ForWhoSection from "@/components/ForWhoSection";
+import MethodologySection from "@/components/MethodologySection";
+import PricingSection from "@/components/PricingSection";
+import WhatsAppCTA from "@/components/WhatsAppCTA";
+import FloatingWhatsAppButton from "@/components/FloatingWhatsAppButton";
 import { initTracking, trackEventAndFlush } from "@/lib/tracking";
 import logo from "@/assets/logo.jpeg";
 
@@ -37,6 +45,36 @@ const ProductLandingPage = () => {
     } catch {}
     window.location.href = tier.checkoutUrl;
   };
+
+  // Para o produto "50 questões", usa exatamente o layout da /paginadevendas,
+  // trocando apenas o preço/checkout conforme o tier escolhido pelo quiz.
+  if (product.slug === "50-questoes-etica") {
+    const installmentsLabel = tier.installments.replace(/^(\d+x)\s+/, "$1 de ");
+    return (
+      <main>
+        <HeroSection />
+        <WhatYouGetSection />
+        <BonusSection />
+        <MaterialPreviewSection />
+        <ForWhoSection />
+        <MethodologySection />
+        <TestimonialsSection />
+        <PricingSection
+          priceLabel={tier.priceLabel}
+          installments={installmentsLabel}
+          onCtaClick={trackAndGo}
+          ctaLabel={product.cta}
+        />
+        <AboutSection />
+        <FAQSection />
+        <WhatsAppCTA />
+        <FooterDisclaimer />
+        <FloatingWhatsAppButton />
+      </main>
+    );
+  }
+
+
 
 
   return (
