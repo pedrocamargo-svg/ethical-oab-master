@@ -87,6 +87,8 @@ const Quiz1 = () => {
 
   useEffect(() => {
     initTracking({ funnel: "quiz1" });
+    pixelTrackCustom("QuizStart", { funnel: "quiz1" });
+    pixelTrack("Lead", { funnel: "quiz1" });
     PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
   useEffect(() => { trackEvent("quiz_step", { funnel: "quiz1", step, answers: a }); }, [step]);
