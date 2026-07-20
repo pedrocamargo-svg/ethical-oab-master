@@ -325,8 +325,15 @@ const SessionModal = ({ session, onClose }: { session: any; onClose: () => void 
     const parts: string[] = [];
     for (const [k, v] of Object.entries(p)) {
       if (v === null || v === undefined || v === "") continue;
+      if (k === "answers" && typeof v === "object") {
+        const answerParts = Object.entries(v as Record<string, any>)
+          .filter(([, av]) => av !== null && av !== undefined && av !== "")
+          .map(([ak, av]) => `${ak}: ${typeof av === "object" ? JSON.stringify(av) : String(av)}`);
+        if (answerParts.length) parts.push(`respostas → ${answerParts.join(" | ")}`);
+        continue;
+      }
       const val = typeof v === "object" ? JSON.stringify(v) : String(v);
-      parts.push(`${k}: ${val.length > 80 ? val.slice(0, 80) + "…" : val}`);
+      parts.push(`${k}: ${val}`);
     }
     return parts.join(" · ");
   };
