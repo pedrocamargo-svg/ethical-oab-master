@@ -32,6 +32,8 @@ const Quiz2 = () => {
 
   useEffect(() => {
     initTracking({ funnel: "quiz2" });
+    pixelTrackCustom("QuizStart", { funnel: "quiz2" });
+    pixelTrack("Lead", { funnel: "quiz2" });
     // Preload images so subsequent steps render instantly
     PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
