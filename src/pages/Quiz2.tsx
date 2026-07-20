@@ -9,6 +9,7 @@ import {
   QuizBigChoice,
 } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
+import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
