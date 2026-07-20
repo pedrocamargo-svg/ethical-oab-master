@@ -9,6 +9,7 @@ import {
   QuizSlider,
 } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
+import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import dep1 from "@/assets/depoimento1.jpeg";
@@ -86,6 +87,8 @@ const Quiz1 = () => {
 
   useEffect(() => {
     initTracking({ funnel: "quiz1" });
+    pixelTrackCustom("QuizStart", { funnel: "quiz1" });
+    pixelTrack("Lead", { funnel: "quiz1" });
     PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
   useEffect(() => { trackEvent("quiz_step", { funnel: "quiz1", step, answers: a }); }, [step]);
@@ -222,6 +225,7 @@ const Quiz1 = () => {
     // Parte 9
     <RecommendationStep answers={a} onGo={async (slug, price) => {
       await trackEventAndFlush("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
+      pixelTrack("InitiateCheckout", { funnel: "quiz1", content_ids: [slug], value: price, currency: "BRL" });
       nav(`/produto/${slug}?t=${Math.round(price * 100)}`);
     }} />,
   ];
