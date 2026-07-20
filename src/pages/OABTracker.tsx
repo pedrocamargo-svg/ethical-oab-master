@@ -109,6 +109,12 @@ function getReachedMap(events: any[] = []) {
   for (let i = 0; i <= highestStep; i += 1) {
     reachedSteps.add(i);
   }
+  // Clicar na recomendação leva o usuário para outro funil (product:*), então o evento
+  // initiate_checkout raramente é registrado nesta sessão. Consideramos que quem clicou
+  // na recomendação já concluiu a etapa de checkout do quiz.
+  if (reachedEvents.has("quiz_recommend")) {
+    reachedEvents.add("initiate_checkout");
+  }
   return { reachedSteps, reachedEvents };
 }
 
