@@ -307,42 +307,26 @@ const ApresentacaoStep = ({ onDone }: { onDone: (n: string) => void }) => {
   );
 };
 
-const LoadingProfile = ({ onDone, nome }: { onDone: () => void; nome?: string }) => {
-  const [done, setDone] = useState(false);
+const LoadingProfile = ({ onDone }: { onDone: () => void; nome?: string }) => {
   useEffect(() => {
-    const t = setTimeout(() => setDone(true), 5000);
+    const t = setTimeout(onDone, 3500);
     return () => clearTimeout(t);
-  }, []);
-  if (!done) {
-    return (
-      <>
-        <QuizTitle>Analisando suas respostas…</QuizTitle>
-        <div className="flex flex-col items-center gap-6 py-6">
-          <div className="w-14 h-14 border-4 border-white/10 border-t-green-500 rounded-full animate-spin" />
-          <div className="w-full space-y-2 text-white/70 text-center">
-            <p>✓ Cruzando dados do seu perfil</p>
-            <p>✓ Identificando pontos de bloqueio</p>
-            <p className="text-green-400">→ Montando estratégia personalizada…</p>
-          </div>
-        </div>
-      </>
-    );
-  }
+  }, [onDone]);
   return (
     <>
-      <QuizTitle>{nome ? `${nome}, ` : ""}vamos criar seu plano personalizado?</QuizTitle>
-      <div className="bg-green-500/10 border border-green-500/40 rounded-2xl p-6 mb-6">
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div><div className="text-3xl font-extrabold text-green-400">37%</div><div className="text-xs text-white/60">Nível de preparo</div></div>
-          <div><div className="text-3xl font-extrabold text-green-400">42%</div><div className="text-xs text-white/60">Foco atual</div></div>
-          <div><div className="text-3xl font-extrabold text-green-400">28%</div><div className="text-xs text-white/60">Direcionamento</div></div>
-          <div><div className="text-3xl font-extrabold text-green-400">85%</div><div className="text-xs text-white/60">Potencial</div></div>
+      <QuizTitle>Analisando suas respostas…</QuizTitle>
+      <div className="flex flex-col items-center gap-6 py-6">
+        <div className="w-14 h-14 border-4 border-white/10 border-t-green-500 rounded-full animate-spin" />
+        <div className="w-full space-y-2 text-white/70 text-center">
+          <p>✓ Cruzando dados do seu perfil</p>
+          <p>✓ Identificando pontos de bloqueio</p>
+          <p className="text-green-400">→ Montando estratégia personalizada…</p>
         </div>
       </div>
-      <QuizText>Responda as próximas 3 perguntas e receba seu plano completo.</QuizText>
-      <QuizButton onClick={onDone}>Continuar →</QuizButton>
     </>
   );
+};
+
 };
 
 const PerfilIdealStep = ({ onNext }: { onNext: () => void }) => {
