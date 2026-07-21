@@ -77,6 +77,24 @@ function recommend(dificuldade?: string, orcamento?: number): { slug: string; pr
   return { slug, price: tier.price };
 }
 
+// Propaga parâmetros de atribuição (utm_*, fbclid, gclid, ttclid, sck, xcod) para a
+// URL da página de vendas recomendada — assim conseguimos rastrear a origem da venda.
+export function forwardUtms(): string {
+  if (typeof window === "undefined") return "";
+  const src = new URLSearchParams(window.location.search);
+  const out = new URLSearchParams();
+  src.forEach((v, k) => {
+    const lk = k.toLowerCase();
+    if (
+      lk.startsWith("utm_") ||
+      lk === "fbclid" || lk === "gclid" || lk === "ttclid" || lk === "msclkid" ||
+      lk === "sck" || lk === "xcod" || lk === "ref" || lk === "src"
+    ) out.set(k, v);
+  });
+  const s = out.toString();
+  return s ? `&${s}` : "";
+}
+
 const Quiz1 = () => {
   const nav = useNavigate();
   const [step, setStep] = useState(0);
