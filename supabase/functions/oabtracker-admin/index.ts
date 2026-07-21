@@ -89,10 +89,20 @@ Deno.serve(async (req) => {
       const total = data?.reduce((sum: number, r: any) => sum + (Number(r.access_count) || 1), 0) ?? 0;
       const sessions = data?.length ?? 0;
       const sold = data?.filter((r: any) => r.sale_status === 'sold').length ?? 0;
-      const completedQuiz = data?.filter((r: any) => r.last_step?.includes('recommend') || r.last_step?.includes('initiate_checkout') || r.last_step?.includes('step 8') || r.last_step?.includes('step 16')).length ?? 0;
+      // Taxa de conclusão do quiz é calculada APENAS sobre sessões de quiz (quiz1/quiz2).
+      // Sessões de páginas de produto não devem entrar no denominador — senão contamos o mesmo
+      // usuário duas vezes (quiz + página de vendas recomendada) e a taxa fica artificialmente baixa.
+      const quizSessions = data?.filter((r: any) => r.funnel === 'quiz1' || r.funnel === 'quiz2') ?? [];
+      const completedQuiz = quizSessions.filter((r: any) =>
+        r.last_step?.includes('recommend') ||
+        r.last_step?.includes('initiate_checkout') ||
+        r.last_step?.includes('step 8') ||
+        r.last_step?.includes('step 16')
+      ).length;
+      const quizDen = quizSessions.length;
       return new Response(JSON.stringify({
         sessions: data,
-        metrics: { total, sessions, sold, completed_quiz: completedQuiz, conversion_rate: sessions ? sold / sessions : 0, quiz_completion_rate: sessions ? completedQuiz / sessions : 0 },
+        metrics: { total, sessions, sold, completed_quiz: completedQuiz, conversion_rate: sessions ? sold / sessions : 0, quiz_completion_rate: quizDen ? completedQuiz / quizDen : 0 },
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
