@@ -11,6 +11,7 @@ import {
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
+import { forwardUtms } from "./Quiz1";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
 import dep1 from "@/assets/depoimento1.jpeg";
