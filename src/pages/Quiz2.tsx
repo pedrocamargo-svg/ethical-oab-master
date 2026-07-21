@@ -270,7 +270,8 @@ const Quiz2 = () => {
       <QuizButton onClick={async () => {
         await trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
         pixelTrack("InitiateCheckout", { funnel: "quiz2", content_ids: [recSlug], value: recTier.price, currency: "BRL" });
-        nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}`);
+        const extra = forwardUtms();
+        nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}${extra}`);
       }}>{getMeetCta(recProduct)} →</QuizButton>
     </>,
   ];
