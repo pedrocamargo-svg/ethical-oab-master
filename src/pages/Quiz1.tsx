@@ -226,7 +226,8 @@ const Quiz1 = () => {
     <RecommendationStep answers={a} onGo={async (slug, price) => {
       await trackEventAndFlush("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
       pixelTrack("InitiateCheckout", { funnel: "quiz1", content_ids: [slug], value: price, currency: "BRL" });
-      nav(`/produto/${slug}?t=${Math.round(price * 100)}`);
+      const extra = forwardUtms();
+      nav(`/produto/${slug}?t=${Math.round(price * 100)}${extra}`);
     }} />,
   ];
 
