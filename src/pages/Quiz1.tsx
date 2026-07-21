@@ -241,12 +241,13 @@ const Quiz1 = () => {
     </>,
 
     // Parte 9
-    <RecommendationStep answers={a} onGo={async (slug, price) => {
-      await trackEventAndFlush("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
+    <RecommendationStep answers={a} onGo={(slug, price) => {
+      trackEventAndFlush("quiz_recommend", { funnel: "quiz1", slug, price, answers: a });
       pixelTrack("InitiateCheckout", { funnel: "quiz1", content_ids: [slug], value: price, currency: "BRL" });
       const extra = forwardUtms();
       nav(`/produto/${slug}?t=${Math.round(price * 100)}${extra}`);
     }} />,
+
   ];
 
   const progress = Math.round(((step + 1) / steps.length) * 100);
