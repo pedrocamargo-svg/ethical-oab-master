@@ -327,7 +327,7 @@ const LoadingProfile = ({ onDone }: { onDone: () => void; nome?: string }) => {
   );
 };
 
-};
+
 
 const PerfilIdealStep = ({ onNext }: { onNext: () => void }) => {
   const [p, setP] = useState(0);
