@@ -11,6 +11,7 @@ import {
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
 import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
+import { forwardUtms } from "./Quiz1";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
 import dep1 from "@/assets/depoimento1.jpeg";
@@ -269,7 +270,8 @@ const Quiz2 = () => {
       <QuizButton onClick={async () => {
         await trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
         pixelTrack("InitiateCheckout", { funnel: "quiz2", content_ids: [recSlug], value: recTier.price, currency: "BRL" });
-        nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}`);
+        const extra = forwardUtms();
+        nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}${extra}`);
       }}>{getMeetCta(recProduct)} →</QuizButton>
     </>,
   ];
