@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  QuizShell,
-  QuizTitle,
-  QuizText,
-  QuizButton,
-  QuizOptions,
-  QuizBigChoice,
-} from "@/components/quiz/QuizShell";
+import { QuizShell, QuizTitle, QuizText, QuizButton, QuizOptions, QuizBigChoice } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
 import { forwardUtms } from "./Quiz1";
@@ -20,7 +13,7 @@ import dep4 from "@/assets/depoimento4.jpeg";
 import dep5 from "@/assets/depoimento5.jpeg";
 import dep6 from "@/assets/depoimento6.jpeg";
 
-const METODO_EDO_CHECKOUT = "https://pay.hub.la/Z08MD3vV36hYF7qOcelU";
+const METODO_EDO_CHECKOUT = "https://pay.hub.la/TZ22iIFQD9LFJM3YLP4e";
 const METODO_EDO_PRICE = 37.9;
 const METODO_EDO_SLUG = "metodo-edo";
 
@@ -37,15 +30,33 @@ const Quiz2 = () => {
     initTracking({ funnel: "quiz2" });
     pixelTrackCustom("QuizStart", { funnel: "quiz2" });
     pixelTrack("Lead", { funnel: "quiz2" });
-    PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
+    PRELOAD_IMGS.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
   }, []);
-  useEffect(() => { trackEvent("quiz_step", { funnel: "quiz2", step, answers: a }); }, [step]);
+  useEffect(() => {
+    trackEvent("quiz_step", { funnel: "quiz2", step, answers: a });
+  }, [step]);
 
-  const next = (p: A = {}) => { setA((prev) => ({ ...prev, ...p })); setStep((s) => s + 1); };
+  const next = (p: A = {}) => {
+    setA((prev) => ({ ...prev, ...p }));
+    setStep((s) => s + 1);
+  };
 
   const goToCheckout = () => {
-    trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: METODO_EDO_SLUG, price: METODO_EDO_PRICE, answers: a });
-    pixelTrack("InitiateCheckout", { funnel: "quiz2", content_ids: [METODO_EDO_SLUG], value: METODO_EDO_PRICE, currency: "BRL" });
+    trackEventAndFlush("quiz_recommend", {
+      funnel: "quiz2",
+      slug: METODO_EDO_SLUG,
+      price: METODO_EDO_PRICE,
+      answers: a,
+    });
+    pixelTrack("InitiateCheckout", {
+      funnel: "quiz2",
+      content_ids: [METODO_EDO_SLUG],
+      value: METODO_EDO_PRICE,
+      currency: "BRL",
+    });
     const extra = forwardUtms();
     const url = extra ? `${METODO_EDO_CHECKOUT}?${extra.replace(/^&/, "")}` : METODO_EDO_CHECKOUT;
     window.location.href = url;
@@ -55,7 +66,8 @@ const Quiz2 = () => {
     // #1
     <>
       <QuizTitle>
-        Vou te dar o passo a passo completo para você passar na OAB como a <span className="text-green-400">Dona Nazareth de 78 anos</span> conseguiu.
+        Vou te dar o passo a passo completo para você passar na OAB como a{" "}
+        <span className="text-green-400">Dona Nazareth de 78 anos</span> conseguiu.
       </QuizTitle>
       <img
         src={depoimentoNazareth.url}
@@ -75,7 +87,8 @@ const Quiz2 = () => {
           { e: "😞", l: "Já tentei de tudo mas não fui aprovado(a)" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ situacao: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -92,7 +105,8 @@ const Quiz2 = () => {
           { e: "🌱", l: "Vou fazer minha primeira vez" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ reprovacoes: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -107,7 +121,8 @@ const Quiz2 = () => {
           { e: "⚡", l: "Sempre bato na trave, preciso de algo simples, rápido e eficiente para passar." },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ falta: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -118,7 +133,8 @@ const Quiz2 = () => {
     // #6
     <>
       <QuizTitle>
-        {a.nome ? `${a.nome}, ` : ""}você está pronto para começar a estudar do <span className="underline decoration-green-500 font-bold">jeito certo</span> e fazer a última OAB da sua vida?
+        {a.nome ? `${a.nome}, ` : ""}você está pronto para começar a estudar do{" "}
+        <span className="underline decoration-green-500 font-bold">jeito certo</span> e fazer a última OAB da sua vida?
       </QuizTitle>
       <QuizBigChoice
         options={[
@@ -131,7 +147,8 @@ const Quiz2 = () => {
     // #7
     <>
       <QuizTitle>
-        Você concorda que a maioria dos cursos ou treinamentos te fazem estudar todos os conteúdos sem levar em conta os temas que mais caem e são mais importantes?
+        Você concorda que a maioria dos cursos ou treinamentos te fazem estudar todos os conteúdos sem levar em conta os
+        temas que mais caem e são mais importantes?
       </QuizTitle>
       <QuizBigChoice
         options={[
@@ -144,7 +161,8 @@ const Quiz2 = () => {
     // #8
     <>
       <QuizTitle>
-        E se você tivesse acesso a materiais prontos que te guiam do absoluto zero até a aprovação estudando somente aquilo que mais cai, tudo pronto e mastigado para você começar a aplicar ainda hoje? Você aplicaria?
+        E se você tivesse acesso a materiais prontos que te guiam do absoluto zero até a aprovação estudando somente
+        aquilo que mais cai, tudo pronto e mastigado para você começar a aplicar ainda hoje? Você aplicaria?
       </QuizTitle>
       <QuizBigChoice
         options={[
@@ -159,7 +177,12 @@ const Quiz2 = () => {
       <QuizTitle>Todos eles começaram como você e olha como estão hoje</QuizTitle>
       <div className="flex flex-col gap-4 mb-6">
         {[dep1, dep2].map((d, i) => (
-          <img key={i} src={d} alt={`Depoimento ${i + 1}`} className="w-full h-auto max-h-[380px] object-contain rounded-lg bg-white/5 p-2" />
+          <img
+            key={i}
+            src={d}
+            alt={`Depoimento ${i + 1}`}
+            className="w-full h-auto max-h-[380px] object-contain rounded-lg bg-white/5 p-2"
+          />
         ))}
       </div>
       <QuizButton onClick={() => next()}>Continuar →</QuizButton>
@@ -167,7 +190,8 @@ const Quiz2 = () => {
     // #10
     <>
       <QuizTitle>
-        {a.nome ? `${a.nome}, ` : ""}se o sistema EDO funcionar para você como funcionou com essas pessoas — qual seria seu maior objetivo ao passar na OAB?
+        {a.nome ? `${a.nome}, ` : ""}se o sistema EDO funcionar para você como funcionou com essas pessoas — qual seria
+        seu maior objetivo ao passar na OAB?
       </QuizTitle>
       <QuizText>Seja sincero, é muito importante…</QuizText>
       <QuizOptions>
@@ -178,7 +202,8 @@ const Quiz2 = () => {
           { e: "⚖️", l: "Ter a honra de ser advogado(a)" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ objetivo: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -191,11 +216,15 @@ const Quiz2 = () => {
         {[
           { e: "🎯", l: "Estudando somente aquilo que cai e aprendendo de verdade." },
           { e: "⚡", l: "Estudando menos e aprendendo mais." },
-          { e: "🧘", l: "Com tranquilidade em relação à minha aprovação. Que passará a ser questão de tempo e não mais de sorte." },
+          {
+            e: "🧘",
+            l: "Com tranquilidade em relação à minha aprovação. Que passará a ser questão de tempo e não mais de sorte.",
+          },
           { e: "🏆", l: "Feliz porque irei fazer a última OAB da minha vida" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ trintaDias: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -206,7 +235,8 @@ const Quiz2 = () => {
     // #13
     <>
       <QuizTitle>
-        O sistema EDO é 100% focado nos temas que caem de verdade na hora da prova, sem perda de tempo. Você está disposto a aplicá-lo em seus estudos?
+        O sistema EDO é 100% focado nos temas que caem de verdade na hora da prova, sem perda de tempo. Você está
+        disposto a aplicá-lo em seus estudos?
       </QuizTitle>
       <QuizOptions>
         {[
@@ -215,7 +245,8 @@ const Quiz2 = () => {
           { e: "😅", l: "Irei tentar mas não sei…" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ disposto: x.l })}>
-            <span className="mr-2">{x.e}</span>{x.l}
+            <span className="mr-2">{x.e}</span>
+            {x.l}
           </QuizButton>
         ))}
       </QuizOptions>
@@ -223,7 +254,8 @@ const Quiz2 = () => {
     // #14 compromisso
     <>
       <QuizTitle>
-        Você se compromete a seguir o plano que vou desenvolver para você usando o sistema EDO e começar a aplicar o quanto antes?
+        Você se compromete a seguir o plano que vou desenvolver para você usando o sistema EDO e começar a aplicar o
+        quanto antes?
       </QuizTitle>
       <QuizBigChoice
         options={[
@@ -239,10 +271,13 @@ const Quiz2 = () => {
     // #16 plano — só o botão
     <>
       <div className="text-center mb-4">
-        <span className="inline-block bg-green-500/20 text-green-400 font-bold text-xs px-3 py-1 rounded-full uppercase">Seu plano está pronto</span>
+        <span className="inline-block bg-green-500/20 text-green-400 font-bold text-xs px-3 py-1 rounded-full uppercase">
+          Seu plano está pronto
+        </span>
       </div>
       <QuizTitle>
-        Baseado no seu perfil{a.nome ? `, ${a.nome}` : ""}, <span className="text-green-400">desenvolvi um plano exclusivamente para você</span>
+        Baseado no seu perfil{a.nome ? `, ${a.nome}` : ""},{" "}
+        <span className="text-green-400">desenvolvi um plano exclusivamente para você</span>
       </QuizTitle>
       <TimelineAprovacao />
       <QuizButton onClick={() => next()}>Quero o método →</QuizButton>
@@ -260,16 +295,26 @@ const ApresentacaoStep = ({ onDone }: { onDone: (n: string) => void }) => {
   const [v, setV] = useState("");
   return (
     <>
-      <img src={joaoPedro} alt="João Pedro" className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover object-top mx-auto mb-6 border-4 border-green-500" />
+      <img
+        src={joaoPedro}
+        alt="João Pedro"
+        className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover object-top mx-auto mb-6 border-4 border-green-500"
+      />
       <QuizTitle>Antes de continuar, deixa eu me apresentar</QuizTitle>
       <QuizText>
-        Sou o <strong className="text-green-400">João Pedro</strong>. Nos últimos 10 anos, ajudei +1 mil alunos a serem aprovados no exame da ordem e conto com uma taxa de aprovação de 85% em meus treinamentos — e passei boa parte desse tempo estudando por que alunos tão dedicados simplesmente não conseguiam ser aprovados no exame da ordem.
+        Sou o <strong className="text-green-400">João Pedro</strong>. Nos últimos 10 anos, ajudei +1 mil alunos a serem
+        aprovados no exame da ordem e conto com uma taxa de aprovação de 85% em meus treinamentos — e passei boa parte
+        desse tempo estudando por que alunos tão dedicados simplesmente não conseguiam ser aprovados no exame da ordem.
       </QuizText>
       <QuizText>
-        O que descobri foi surpreendente: o problema nunca era falta de dedicação. Era falta de um sistema para direcionar essa dedicação e energia nos temas que caem de verdade na hora da prova — um jeito rápido, simples e sem precisar se matar de estudar.
+        O que descobri foi surpreendente: o problema nunca era falta de dedicação. Era falta de um sistema para
+        direcionar essa dedicação e energia nos temas que caem de verdade na hora da prova — um jeito rápido, simples e
+        sem precisar se matar de estudar.
       </QuizText>
       <QuizText>
-        Foi aí que criei o <strong>método EDO</strong>: um método com materiais prontos e visuais, com tudo mastigado e pronto para você sentar e estudar, 100% focado naquilo que vai cair na hora do seu exame. Você senta, lê o conteúdo, faz o exercício e sai com tudo fixado. Simples.
+        Foi aí que criei o <strong>método EDO</strong>: um método com materiais prontos e visuais, com tudo mastigado e
+        pronto para você sentar e estudar, 100% focado naquilo que vai cair na hora do seu exame. Você senta, lê o
+        conteúdo, faz o exercício e sai com tudo fixado. Simples.
       </QuizText>
       <QuizText>Mas antes de continuar e montar seu plano personalizado…</QuizText>
       <input
@@ -278,7 +323,9 @@ const ApresentacaoStep = ({ onDone }: { onDone: (n: string) => void }) => {
         placeholder="Digite seu nome aqui"
         className="w-full bg-white/5 border-2 border-white/20 focus:border-green-500 rounded-xl px-5 py-4 text-white text-lg mb-4 outline-none"
       />
-      <QuizButton disabled={!v.trim()} onClick={() => onDone(v.trim())}>Continuar →</QuizButton>
+      <QuizButton disabled={!v.trim()} onClick={() => onDone(v.trim())}>
+        Continuar →
+      </QuizButton>
     </>
   );
 };
@@ -307,10 +354,18 @@ const PerfilIdealStep = ({ onNext }: { onNext: () => void }) => {
   const [p, setP] = useState(0);
   const [done, setDone] = useState(false);
   useEffect(() => {
-    const int = setInterval(() => setP((v) => {
-      if (v >= 100) { clearInterval(int); setDone(true); return 100; }
-      return v + 4;
-    }), 100);
+    const int = setInterval(
+      () =>
+        setP((v) => {
+          if (v >= 100) {
+            clearInterval(int);
+            setDone(true);
+            return 100;
+          }
+          return v + 4;
+        }),
+      100,
+    );
     return () => clearInterval(int);
   }, []);
   if (!done) {
@@ -327,7 +382,8 @@ const PerfilIdealStep = ({ onNext }: { onNext: () => void }) => {
   return (
     <>
       <QuizTitle>
-        Você tem o <span className="text-green-400">PERFIL IDEAL</span> de quem pode ser aprovado no próximo exame com o método EDO!!
+        Você tem o <span className="text-green-400">PERFIL IDEAL</span> de quem pode ser aprovado no próximo exame com o
+        método EDO!!
       </QuizTitle>
       <div className="mb-6">
         <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden">
@@ -404,7 +460,8 @@ const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => 
     <div className="-mx-4 -my-8 sm:-my-10">
       <div className="px-4 py-8 sm:py-12 max-w-3xl mx-auto">
         <QuizTitle>
-          O que o diagnóstico mostrou tem solução{nome ? `, ${nome}` : ""}. <span className="text-green-400">E é mais simples do que você imagina.</span>
+          O que o diagnóstico mostrou tem solução{nome ? `, ${nome}` : ""}.{" "}
+          <span className="text-green-400">E é mais simples do que você imagina.</span>
         </QuizTitle>
 
         {/* Antes x Depois */}
@@ -414,7 +471,8 @@ const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => 
             <ul className="space-y-2">
               {antes.map((t) => (
                 <li key={t} className="flex items-start gap-2 text-sm sm:text-base text-white/85">
-                  <span className="text-red-400 mt-0.5">✗</span><span>{t}</span>
+                  <span className="text-red-400 mt-0.5">✗</span>
+                  <span>{t}</span>
                 </li>
               ))}
             </ul>
@@ -424,7 +482,8 @@ const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => 
             <ul className="space-y-2">
               {depois.map((t) => (
                 <li key={t} className="flex items-start gap-2 text-sm sm:text-base text-white/85">
-                  <span className="text-green-400 mt-0.5">✓</span><span>{t}</span>
+                  <span className="text-green-400 mt-0.5">✓</span>
+                  <span>{t}</span>
                 </li>
               ))}
             </ul>
@@ -439,7 +498,9 @@ const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => 
               key={b.titulo}
               className={`rounded-2xl p-5 border ${b.bonus ? "bg-green-500/10 border-green-500/40" : "bg-white/5 border-white/10"}`}
             >
-              <h3 className={`font-heading font-bold text-base sm:text-lg mb-2 ${b.bonus ? "text-green-400" : "text-white"}`}>
+              <h3
+                className={`font-heading font-bold text-base sm:text-lg mb-2 ${b.bonus ? "text-green-400" : "text-white"}`}
+              >
                 {b.titulo}
               </h3>
               <p className="text-white/80 text-sm sm:text-base leading-relaxed">{b.texto}</p>
@@ -448,7 +509,9 @@ const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => 
         </div>
 
         {/* Demonstração */}
-        <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-center mb-2">Não confia em mim? Veja com seus próprios olhos</h2>
+        <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-center mb-2">
+          Não confia em mim? Veja com seus próprios olhos
+        </h2>
         <p className="text-center text-white/60 mb-6 text-sm">Experimente o Dia 1 da plataforma agora mesmo:</p>
         <div className="rounded-2xl overflow-hidden bg-white text-black mb-10 shadow-2xl">
           <PlatformSimulation />
