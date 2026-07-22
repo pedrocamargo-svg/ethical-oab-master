@@ -1,8 +1,6 @@
 // Admin API for /oabtracker dashboard.
 // - action=login: validates two passwords, returns token
-// - action=list: sessions filtered
-// - action=detail: session + events + recording
-// - action=update_sale: set sale_status
+// - action=stats: per-funnel aggregate stats
 // - action=delete_range: delete by date range
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -14,25 +12,31 @@ const corsHeaders = {
 
 const PW_NUMERIC = '170300';
 const PW_ALPHA = 'Pedro100pre#';
-const TOKEN_SECRET = 'oab-tracker-2026-token'; // simple bearer token
+const TOKEN_SECRET = 'oab-tracker-2026-token';
+
+const FUNNELS = [
+  { key: 'quiz1', label: 'Quiz WhatsApp' },
+  { key: 'quiz2', label: 'Quiz Longo' },
+];
 
 function normalizePassword(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFKC')
-    .trim();
+  return String(value ?? '').normalize('NFKC').trim();
 }
 
 function isValidAlphaPassword(value: unknown) {
   const normalized = normalizePassword(value).toLowerCase();
   const expected = PW_ALPHA.toLowerCase();
-  const expectedWithoutHash = expected.replace(/#$/, '');
-
-  return normalized === expected || normalized === expectedWithoutHash;
+  return normalized === expected || normalized === expected.replace(/#$/, '');
 }
 
 function checkAuth(req: Request) {
-  const h = req.headers.get('x-oab-token');
-  return h === TOKEN_SECRET;
+  return req.headers.get('x-oab-token') === TOKEN_SECRET;
+}
+
+function isFacebookAd(utm: any): boolean {
+  if (!utm || typeof utm !== 'object') return false;
+  const src = String(utm.utm_source ?? '').toLowerCase();
+  return src.startsWith('fb') || src.includes('facebook') || src === 'meta';
 }
 
 Deno.serve(async (req) => {
@@ -75,80 +79,74 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    if (action === 'list') {
-      const { funnel, from, to, search } = body;
-      let q = supabase.from('tracking_sessions').select('*').order('last_seen_at', { ascending: false }).limit(500);
-      if (funnel && funnel !== 'all') q = q.eq('funnel', funnel);
-      if (from) q = q.gte('started_at', from);
-      if (to) q = q.lte('started_at', to);
-      if (search) q = q.or(`user_label.ilike.%${search}%,city.ilike.%${search}%,country.ilike.%${search}%`);
-      const { data, error } = await q;
-      if (error) throw error;
+    if (action === 'stats') {
+      const { from, to } = body;
 
-      // metrics
-      const total = data?.reduce((sum: number, r: any) => sum + (Number(r.access_count) || 1), 0) ?? 0;
-      const sessions = data?.length ?? 0;
-      const sold = data?.filter((r: any) => r.sale_status === 'sold').length ?? 0;
-      // Taxa de conclusão do quiz é calculada APENAS sobre sessões de quiz (quiz1/quiz2).
-      // Sessões de páginas de produto não devem entrar no denominador — senão contamos o mesmo
-      // usuário duas vezes (quiz + página de vendas recomendada) e a taxa fica artificialmente baixa.
-      const quizSessions = data?.filter((r: any) => r.funnel === 'quiz1' || r.funnel === 'quiz2') ?? [];
-      const completedQuiz = quizSessions.filter((r: any) =>
-        r.last_step?.includes('recommend') ||
-        r.last_step?.includes('initiate_checkout') ||
-        r.last_step?.includes('step 8') ||
-        r.last_step?.includes('step 16')
-      ).length;
-      const quizDen = quizSessions.length;
-      return new Response(JSON.stringify({
-        sessions: data,
-        metrics: { total, sessions, sold, completed_quiz: completedQuiz, conversion_rate: sessions ? sold / sessions : 0, quiz_completion_rate: quizDen ? completedQuiz / quizDen : 0 },
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+      const results: any[] = [];
+      for (const f of FUNNELS) {
+        // Sessions for this funnel
+        let sq = supabase.from('tracking_sessions').select('id, utm_params').eq('funnel', f.key).limit(100000);
+        if (from) sq = sq.gte('started_at', from);
+        if (to) sq = sq.lte('started_at', to);
+        const { data: sess } = await sq;
+        const sessions = sess ?? [];
+        const sessionIds = sessions.map((s: any) => s.id);
+        const acessos = sessions.length;
+        const fbAcessos = sessions.filter((s: any) => isFacebookAd(s.utm_params)).length;
 
-    if (action === 'detail') {
-      const { session_id } = body;
-      const [{ data: session }, { data: events }] = await Promise.all([
-        supabase.from('tracking_sessions').select('*').eq('id', session_id).maybeSingle(),
-        supabase.from('tracking_events').select('*').eq('session_id', session_id).neq('event_type', 'heatmap_clicks').order('created_at'),
-      ]);
-      return new Response(JSON.stringify({ session, events }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+        // Events for these sessions to determine funnel progression
+        let viewedFirst = 0;
+        let advanced = 0;
+        let clickedCheckout = 0;
 
-    if (action === 'heatmap') {
-      // Aggregate heatmap_clicks across sessions matching the current filter.
-      const { funnel, from, to, path } = body;
-      let sq = supabase.from('tracking_sessions').select('id').limit(2000);
-      if (funnel && funnel !== 'all') sq = sq.eq('funnel', funnel);
-      if (from) sq = sq.gte('started_at', from);
-      if (to) sq = sq.lte('started_at', to);
-      const { data: sess } = await sq;
-      const ids = (sess ?? []).map((r: any) => r.id);
-      if (ids.length === 0) return new Response(JSON.stringify({ pages: [], clicks: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      const { data: evts } = await supabase.from('tracking_events').select('payload, url').eq('event_type', 'heatmap_clicks').in('session_id', ids).limit(5000);
-      const pageCounts = new Map<string, number>();
-      const clicks: any[] = [];
-      for (const e of evts ?? []) {
-        const arr = Array.isArray(e.payload?.clicks) ? e.payload.clicks : [];
-        for (const c of arr) {
-          const p = c.path ?? '/';
-          pageCounts.set(p, (pageCounts.get(p) ?? 0) + 1);
-          if (path && p === path) clicks.push(c);
+        if (sessionIds.length > 0) {
+          // Fetch step + recommend events. Chunk in case of many ids.
+          const chunk = 200;
+          const perSession = new Map<string, { maxStep: number; recommended: boolean }>();
+          for (let i = 0; i < sessionIds.length; i += chunk) {
+            const part = sessionIds.slice(i, i + chunk);
+            const { data: evts } = await supabase
+              .from('tracking_events')
+              .select('session_id, event_type, payload')
+              .in('session_id', part)
+              .in('event_type', ['quiz_step', 'quiz_recommend', 'initiate_checkout'])
+              .limit(50000);
+            for (const e of evts ?? []) {
+              const cur = perSession.get(e.session_id) ?? { maxStep: -1, recommended: false };
+              if (e.event_type === 'quiz_step') {
+                const s = Number(e.payload?.step);
+                if (Number.isFinite(s) && s > cur.maxStep) cur.maxStep = s;
+              } else if (e.event_type === 'quiz_recommend' || e.event_type === 'initiate_checkout') {
+                cur.recommended = true;
+              }
+              perSession.set(e.session_id, cur);
+            }
+          }
+          for (const [, v] of perSession) {
+            if (v.maxStep >= 0) viewedFirst++;
+            if (v.maxStep >= 1) advanced++;
+            if (v.recommended) clickedCheckout++;
+          }
         }
-      }
-      const pages = Array.from(pageCounts.entries()).map(([path, count]) => ({ path, count })).sort((a, b) => b.count - a.count);
-      return new Response(JSON.stringify({ pages, clicks }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
 
-    if (action === 'update_sale') {
-      const { session_id, sale_status } = body;
-      await supabase.from('tracking_sessions').update({ sale_status }).eq('id', session_id);
-      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        const ctr = viewedFirst > 0 ? clickedCheckout / viewedFirst : 0;
+        results.push({
+          key: f.key,
+          label: f.label,
+          acessos,
+          fb_acessos: fbAcessos,
+          viewed_first: viewedFirst,
+          advanced,
+          clicked_checkout: clickedCheckout,
+          ctr,
+        });
+      }
+
+      return new Response(JSON.stringify({ funnels: results }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     if (action === 'delete_range') {
       const { from, to } = body;
-      // Find affected sessions first so we can cascade delete their events + recordings.
       let sq = supabase.from('tracking_sessions').select('id').limit(100000);
       if (from) sq = sq.gte('started_at', from);
       if (to) sq = sq.lte('started_at', to);
@@ -157,7 +155,6 @@ Deno.serve(async (req) => {
       const ids = (sess ?? []).map((r: any) => r.id);
       let deleted = 0;
       if (ids.length > 0) {
-        // Delete in chunks to stay within URL limits.
         const chunk = 200;
         for (let i = 0; i < ids.length; i += chunk) {
           const part = ids.slice(i, i + chunk);
@@ -170,7 +167,6 @@ Deno.serve(async (req) => {
       }
       return new Response(JSON.stringify({ ok: true, deleted }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-
 
     return new Response(JSON.stringify({ error: 'unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {

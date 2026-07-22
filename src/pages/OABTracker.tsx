@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, Circle, Flame, Lock, RefreshCw, Search, Trash2, X } from "lucide-react";
-
-
+import { Lock, RefreshCw, Trash2 } from "lucide-react";
 
 const TOKEN_KEY = "oab_admin_token";
 const FP_KEY = "oab_admin_fp";
@@ -24,113 +22,6 @@ async function callAdmin(action: string, body: any = {}) {
   });
   if (error) throw error;
   return data;
-}
-
-const FUNNELS = [
-  { key: "all", label: "Todos" },
-  { key: "quiz1", label: "Quiz WhatsApp" },
-  { key: "quiz2", label: "Quiz Longo" },
-  { key: "product:50-questoes-etica", label: "50 Questões" },
-  { key: "product:mapas-mentais-etica", label: "Mapas Mentais" },
-  { key: "product:36-tpps-etica", label: "36 TPPs" },
-  { key: "product:mapa-aprovacao", label: "Mapa da Aprovação" },
-];
-
-type FunnelStep = {
-  step?: number;
-  event?: string;
-  label: string;
-};
-
-const FUNNEL_STEPS: Record<string, FunnelStep[]> = {
-  quiz1: [
-    { step: 0, label: "Começou o quiz" },
-    { step: 1, label: "Situação na OAB" },
-    { step: 2, label: "Reprovações / primeira vez" },
-    { step: 3, label: "Maior dificuldade" },
-    { step: 4, label: "Motivação" },
-    { step: 5, label: "Plano sendo criado" },
-    { step: 6, label: "Conheceu João Pedro" },
-    { step: 7, label: "Orçamento" },
-    { step: 8, label: "Recebeu recomendação" },
-    { event: "quiz_recommend", label: "Clicou na recomendação" },
-    { event: "initiate_checkout", label: "Foi para o checkout" },
-  ],
-  quiz2: [
-    { step: 0, label: "Começou pelo depoimento" },
-    { step: 1, label: "Situação atual" },
-    { step: 2, label: "Reprovações" },
-    { step: 3, label: "O que falta" },
-    { step: 4, label: "Apresentação / nome" },
-    { step: 5, label: "Pronto para estudar" },
-    { step: 6, label: "Concordou com direcionamento" },
-    { step: 7, label: "Aceitou aplicar" },
-    { step: 8, label: "Viu depoimentos" },
-    { step: 9, label: "Objetivo" },
-    { step: 10, label: "Visão de 30 dias" },
-    { step: 11, label: "Perfil analisado" },
-    { step: 12, label: "Sistema EDO" },
-    { step: 13, label: "Orçamento" },
-    { step: 14, label: "Compromisso" },
-    { step: 15, label: "Perfil ideal" },
-    { step: 16, label: "Plano pronto" },
-    { event: "quiz_recommend", label: "Clicou na recomendação" },
-    { event: "initiate_checkout", label: "Foi para o checkout" },
-  ],
-};
-
-const PRODUCT_STEPS: FunnelStep[] = [
-  { event: "initiate_checkout", label: "Clicou no checkout" },
-];
-
-function getFunnelLabel(key: string) {
-  return FUNNELS.find((f) => f.key === key)?.label ?? key;
-}
-
-function getStepsForFunnel(funnel: string) {
-  if (FUNNEL_STEPS[funnel]) return FUNNEL_STEPS[funnel];
-  if (funnel?.startsWith("product:")) return PRODUCT_STEPS;
-  return [];
-}
-
-function getReachedMap(events: any[] = []) {
-  const reachedSteps = new Set<number>();
-  const reachedEvents = new Set<string>();
-  let highestStep = -1;
-  for (const ev of events) {
-    if (ev?.event_type) reachedEvents.add(ev.event_type);
-    const step = Number(ev?.payload?.step);
-    if (Number.isFinite(step)) {
-      reachedSteps.add(step);
-      highestStep = Math.max(highestStep, step);
-    }
-  }
-  // If an early event was lost before the session finished registering, show the path reached up to the latest known step.
-  for (let i = 0; i <= highestStep; i += 1) {
-    reachedSteps.add(i);
-  }
-  // Clicar na recomendação leva o usuário para outro funil (product:*), então o evento
-  // initiate_checkout raramente é registrado nesta sessão. Consideramos que quem clicou
-  // na recomendação já concluiu a etapa de checkout do quiz.
-  if (reachedEvents.has("quiz_recommend")) {
-    reachedEvents.add("initiate_checkout");
-  }
-  return { reachedSteps, reachedEvents };
-}
-
-function getLastReadableStep(session: any) {
-  const raw = String(session?.last_step ?? "");
-  const steps = getStepsForFunnel(session?.funnel);
-  const stepMatch = raw.match(/step\s+(\d+)/i);
-  if (stepMatch) {
-    const found = steps.find((s) => s.step === Number(stepMatch[1]));
-    if (found) return found.label;
-  }
-  const eventMatch = steps.find((s) => s.event === raw);
-  if (eventMatch) return eventMatch.label;
-  if (raw === "quiz_recommend") return "Clicou na recomendação";
-  if (raw === "initiate_checkout") return "Foi para o checkout";
-  return raw || "-";
 }
 
 const Login = ({ onOk }: { onOk: () => void }) => {
@@ -172,405 +63,114 @@ const Login = ({ onOk }: { onOk: () => void }) => {
   );
 };
 
+type FunnelStats = {
+  key: string;
+  label: string;
+  acessos: number;
+  fb_acessos: number;
+  viewed_first: number;
+  advanced: number;
+  clicked_checkout: number;
+  ctr: number;
+};
+
 const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
-  const [funnel, setFunnel] = useState("all");
-  const [range, setRange] = useState<"today"|"7d"|"month"|"30d"|"all">("30d");
-  const [search, setSearch] = useState("");
-  const [data, setData] = useState<any>({ sessions: [], metrics: {} });
+  const [range, setRange] = useState<"today" | "7d" | "month" | "30d" | "all">("30d");
+  const [funnels, setFunnels] = useState<FunnelStats[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<any>(null);
-  const [showDelete, setShowDelete] = useState(false);
-  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const now = new Date();
     let from: string | undefined;
-    if (range === "today") from = new Date(now.setHours(0,0,0,0)).toISOString();
-    else if (range === "7d") from = new Date(Date.now() - 7*86400000).toISOString();
-    else if (range === "30d") from = new Date(Date.now() - 30*86400000).toISOString();
+    if (range === "today") from = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+    else if (range === "7d") from = new Date(Date.now() - 7 * 86400000).toISOString();
+    else if (range === "30d") from = new Date(Date.now() - 30 * 86400000).toISOString();
     else if (range === "month") from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     try {
-      const res = await callAdmin("list", { funnel, from, search });
-      setData(res);
+      const res = await callAdmin("stats", { from });
+      setFunnels(res?.funnels ?? []);
     } catch (e: any) {
       if (String(e?.message).includes("unauth")) onLogout();
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [funnel, range]);
+  useEffect(() => { load(); }, [range]);
 
-  const updateSale = async (id: string, status: string) => {
-    await callAdmin("update_sale", { session_id: id, sale_status: status });
-    load();
+  const handleDelete = async () => {
+    if (!confirm("Tem certeza que quer apagar TODOS os dados? Essa ação não pode ser desfeita.")) return;
+    setDeleting(true);
+    try {
+      await callAdmin("delete_range", {});
+      await load();
+    } catch (e) {
+      alert("Erro ao apagar dados.");
+    } finally { setDeleting(false); }
   };
-
-  const m = data.metrics ?? {};
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white p-4 md:p-8">
       <header className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="font-heading font-bold text-2xl">OAB Tracker</h1>
-          <p className="text-white/50 text-sm">Painel de rastreamento · {getFunnelLabel(funnel)}</p>
+          <p className="text-white/50 text-sm">Painel de rastreamento por funil</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="p-2 bg-white/10 rounded-lg hover:bg-white/20" title="Recarregar"><RefreshCw className="w-4 h-4" /></button>
-          <button onClick={() => setShowHeatmap(true)} className="p-2 bg-orange-600/20 text-orange-300 rounded-lg hover:bg-orange-600/40" title="Mapa de calor"><Flame className="w-4 h-4" /></button>
-          <button onClick={() => setShowDelete(true)} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40" title="Deletar"><Trash2 className="w-4 h-4" /></button>
-          <select value={funnel} onChange={(e) => setFunnel(e.target.value)} className="bg-white/10 rounded-lg px-3 py-2 text-sm border border-white/10">
-            {FUNNELS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-          </select>
+          <button onClick={handleDelete} disabled={deleting} className="p-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/40 disabled:opacity-50" title="Apagar tudo"><Trash2 className="w-4 h-4" /></button>
         </div>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Metric label="Acessos" value={m.total ?? 0} />
-        <Metric label="Vendas" value={m.sold ?? 0} />
-        <Metric label="Conversão" value={`${((m.conversion_rate ?? 0) * 100).toFixed(1)}%`} />
-        <Metric label="Conclusão Quiz" value={`${((m.quiz_completion_rate ?? 0) * 100).toFixed(1)}%`} />
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-4">
-        {(["today","7d","month","30d","all"] as const).map((r) => (
-          <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range===r?"bg-red-600":"bg-white/10 hover:bg-white/20"}`}>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {(["today", "7d", "month", "30d", "all"] as const).map((r) => (
+          <button key={r} onClick={() => setRange(r)} className={`px-3 py-1.5 rounded-lg text-sm ${range === r ? "bg-red-600" : "bg-white/10 hover:bg-white/20"}`}>
             {r === "today" ? "Hoje" : r === "7d" ? "7 dias" : r === "month" ? "Este mês" : r === "30d" ? "30 dias" : "Tudo"}
           </button>
         ))}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key==="Enter" && load()} placeholder="Buscar user, cidade..." className="w-full bg-white/10 rounded-lg pl-9 pr-3 py-2 text-sm outline-none border border-white/10" />
-        </div>
       </div>
 
-      <div className="bg-white/5 rounded-xl overflow-hidden border border-white/10">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-white/5 text-white/60">
-              <tr>
-                <th className="text-left p-3">User</th>
-                <th className="text-left p-3">Funil</th>
-                <th className="text-left p-3">Cidade</th>
-                <th className="text-left p-3">utm_source</th>
-                <th className="text-left p-3">utm_medium</th>
-                <th className="text-left p-3">utm_campaign</th>
-                <th className="text-left p-3">utm_content</th>
-                <th className="text-left p-3">utm_term</th>
-                <th className="text-left p-3">Acessos</th>
-                <th className="text-left p-3">Tempo</th>
-                <th className="text-left p-3">Último passo</th>
-                <th className="text-left p-3">Venda</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && <tr><td colSpan={12} className="p-8 text-center text-white/50">Carregando...</td></tr>}
-              {!loading && (data.sessions ?? []).length === 0 && <tr><td colSpan={12} className="p-8 text-center text-white/50">Nenhuma sessão</td></tr>}
-              {(data.sessions ?? []).map((s: any) => {
-                const utms = s.utm_params ?? {};
-                const cell = (v: any) => <td className="p-3 text-white/70 truncate max-w-[140px]" title={v || ""}>{v || "-"}</td>;
-                return (
-                <tr key={s.id} onClick={() => setSelected(s)} className="border-t border-white/5 hover:bg-white/5 cursor-pointer">
-                  <td className="p-3 font-semibold">{s.user_label}</td>
-                  <td className="p-3 text-white/70">{getFunnelLabel(s.funnel)}</td>
-                  <td className="p-3 text-white/70">{s.city ?? "-"}{s.country ? `, ${s.country}` : ""}</td>
-                  {cell(utms.utm_source)}
-                  {cell(utms.utm_medium)}
-                  {cell(utms.utm_campaign)}
-                  {cell(utms.utm_content)}
-                  {cell(utms.utm_term)}
-                  <td className="p-3">{s.access_count}</td>
-                  <td className="p-3">{Math.floor((s.duration_seconds ?? 0) / 60)}m {(s.duration_seconds ?? 0) % 60}s</td>
-                  <td className="p-3 text-white/70 truncate max-w-[180px]">{getLastReadableStep(s)}</td>
-                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                    <select value={s.sale_status} onChange={(e) => updateSale(s.id, e.target.value)} className={`bg-white/10 rounded px-2 py-1 text-xs ${s.sale_status==="sold"?"text-green-400":s.sale_status==="not_sold"?"text-red-400":"text-yellow-400"}`}>
-                      <option value="pending">Pendente</option>
-                      <option value="sold">Vendeu</option>
-                      <option value="not_sold">Não vendeu</option>
-                    </select>
-                  </td>
-                </tr>
-              );})}
-            </tbody>
-          </table>
+      {loading && <p className="text-white/50 text-center py-12">Carregando...</p>}
+
+      {!loading && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {funnels.map((f) => (
+            <FunnelBox key={f.key} f={f} />
+          ))}
         </div>
-      </div>
-
-
-      {selected && <SessionModal session={selected} onClose={() => setSelected(null)} />}
-      {showDelete && <DeleteModal onClose={() => setShowDelete(false)} onDone={() => { setShowDelete(false); load(); }} />}
-      {showHeatmap && <HeatmapModal funnel={funnel} range={range} onClose={() => setShowHeatmap(false)} />}
+      )}
     </main>
   );
 };
 
-const Metric = ({ label, value }: { label: string; value: any }) => (
-  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-    <div className="text-xs uppercase text-white/50 mb-1">{label}</div>
-    <div className="text-2xl font-bold">{value}</div>
-  </div>
-);
-
-const SessionModal = ({ session, onClose }: { session: any; onClose: () => void }) => {
-  const [detail, setDetail] = useState<any>(null);
-
-  useEffect(() => {
-    setDetail(null);
-    callAdmin("detail", { session_id: session.id }).then(setDetail).catch(() => setDetail({ events: [] }));
-  }, [session.id]);
-
-  const events = detail?.events ?? [];
-
-  const formatPayload = (p: any) => {
-    if (!p || typeof p !== "object") return String(p ?? "");
-    const parts: string[] = [];
-    for (const [k, v] of Object.entries(p)) {
-      if (v === null || v === undefined || v === "") continue;
-      if (k === "answers" && typeof v === "object") {
-        const answerParts = Object.entries(v as Record<string, any>)
-          .filter(([, av]) => av !== null && av !== undefined && av !== "")
-          .map(([ak, av]) => `${ak}: ${typeof av === "object" ? JSON.stringify(av) : String(av)}`);
-        if (answerParts.length) parts.push(`respostas → ${answerParts.join(" | ")}`);
-        continue;
-      }
-      const val = typeof v === "object" ? JSON.stringify(v) : String(v);
-      parts.push(`${k}: ${val}`);
-    }
-    return parts.join(" · ");
-  };
-
+const FunnelBox = ({ f }: { f: FunnelStats }) => {
+  const rows: { label: string; value: string | number }[] = [
+    { label: "Acessos", value: f.acessos },
+    { label: "Acessos via Facebook Ads", value: f.fb_acessos },
+    { label: "Viram a primeira etapa", value: f.viewed_first },
+    { label: "Avançaram após primeira etapa", value: f.advanced },
+    { label: "Clicaram para o checkout", value: f.clicked_checkout },
+    { label: "CTR (checkout / viram)", value: `${(f.ctr * 100).toFixed(1)}%` },
+  ];
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6 border-b border-white/10 flex justify-between items-start">
-          <div>
-            <h2 className="font-bold text-xl">{session.user_label}</h2>
-            <p className="text-white/60 text-sm">{getFunnelLabel(session.funnel)} · {session.city ?? "-"} · {session.country ?? "-"}</p>
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+      <h2 className="font-heading font-bold text-xl mb-4 text-red-400">{f.label}</h2>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.label} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0">
+            <span className="text-white/70 text-sm">{r.label}</span>
+            <span className="font-bold text-lg">{r.value}</span>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
-        </div>
-        <div className="p-6">
-          {!detail && <p className="text-white/50 text-sm mb-4">Carregando detalhes...</p>}
-
-          <FunnelProgress session={session} events={events} />
-
-          <h3 className="font-bold mb-3">Timeline</h3>
-          <div className="space-y-2">
-            {events.length === 0 && <p className="text-white/40 text-sm">Nenhum evento registrado.</p>}
-            {events.map((ev: any) => (
-              <div key={ev.id} className="bg-white/5 rounded-lg p-3 text-sm flex items-start gap-3">
-                <div className="text-white/40 text-xs whitespace-nowrap pt-0.5">{new Date(ev.created_at).toLocaleTimeString("pt-BR")}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-red-400">{describeEvent(ev, session.funnel)}</div>
-                  {ev.payload && <div className="text-white/70 text-xs mt-0.5 break-words">{formatPayload(ev.payload)}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
 };
-
-function describeEvent(ev: any, funnel: string) {
-  if (ev?.event_type === "quiz_step") {
-    const step = Number(ev?.payload?.step);
-    const found = getStepsForFunnel(funnel).find((s) => s.step === step);
-    return found ? found.label : `Etapa ${Number.isFinite(step) ? step + 1 : "do quiz"}`;
-  }
-  if (ev?.event_type === "quiz_recommend") return "Clicou na recomendação";
-  if (ev?.event_type === "initiate_checkout") return "Foi para o checkout";
-  return ev?.event_type ?? "Evento";
-}
-
-const FunnelProgress = ({ session, events }: { session: any; events: any[] }) => {
-  const steps = getStepsForFunnel(session.funnel);
-  if (steps.length === 0) return null;
-  const { reachedSteps, reachedEvents } = getReachedMap(events);
-  const completed = steps.filter((s) => (s.step !== undefined && reachedSteps.has(s.step)) || (s.event && reachedEvents.has(s.event))).length;
-
-  return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <h3 className="font-bold">Etapas do funil</h3>
-        <span className="text-white/50 text-xs">{completed}/{steps.length} concluídas</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {steps.map((s, i) => {
-          const done = (s.step !== undefined && reachedSteps.has(s.step)) || Boolean(s.event && reachedEvents.has(s.event));
-          const isCheckout = s.event === "initiate_checkout";
-          return (
-            <div key={`${s.step ?? s.event}-${i}`} className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${done ? "bg-green-500/15 border-green-500/40 text-green-100" : "bg-white/5 border-white/10 text-white/45"}`}>
-              {done ? <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" /> : <Circle className="w-4 h-4 flex-shrink-0" />}
-              <span className="truncate">{s.label}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const DeleteModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => void }) => {
-  const [range, setRange] = useState<"7d"|"30d"|"all">("30d");
-  const [confirm, setConfirm] = useState(false);
-
-  const del = async () => {
-    let from: string | undefined;
-    if (range === "7d") from = new Date(Date.now() - 7*86400000).toISOString();
-    else if (range === "30d") from = new Date(Date.now() - 30*86400000).toISOString();
-    await callAdmin("delete_range", { from });
-    onDone();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#111] border border-red-500/30 rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-bold text-xl mb-3 text-red-400">Deletar sessões</h2>
-        {!confirm ? (
-          <>
-            <p className="text-white/70 mb-4 text-sm">Selecione o período:</p>
-            <div className="flex gap-2 mb-4">
-              {(["7d","30d","all"] as const).map((r) => (
-                <button key={r} onClick={() => setRange(r)} className={`flex-1 py-2 rounded ${range===r?"bg-red-600":"bg-white/10"}`}>
-                  {r === "7d" ? "7 dias" : r === "30d" ? "30 dias" : "Tudo"}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button onClick={onClose} className="flex-1 bg-white/10 py-2 rounded">Cancelar</button>
-              <button onClick={() => setConfirm(true)} className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded font-bold">Continuar</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="text-red-400 mb-4 font-bold uppercase text-sm">Esta ação é IRREVERSÍVEL</p>
-            <p className="text-white/70 mb-4 text-sm">Tem certeza que deseja deletar todas as sessões deste período?</p>
-            <div className="flex gap-2">
-              <button onClick={onClose} className="flex-1 bg-white/10 py-2 rounded">Cancelar</button>
-              <button onClick={del} className="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded font-bold">SIM, DELETAR</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const HeatmapModal = ({ funnel, range, onClose }: { funnel: string; range: string; onClose: () => void }) => {
-  const [pages, setPages] = useState<{ path: string; count: number }[]>([]);
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [clicks, setClicks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const canvasRef = useState<HTMLCanvasElement | null>(null);
-
-  const rangeFrom = () => {
-    const now = new Date();
-    if (range === "today") return new Date(now.setHours(0,0,0,0)).toISOString();
-    if (range === "7d") return new Date(Date.now() - 7*86400000).toISOString();
-    if (range === "30d") return new Date(Date.now() - 30*86400000).toISOString();
-    if (range === "month") return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    return undefined;
-  };
-
-  useEffect(() => {
-    setLoading(true);
-    callAdmin("heatmap", { funnel, from: rangeFrom() })
-      .then((res) => { setPages(res.pages ?? []); })
-      .finally(() => setLoading(false));
-  }, [funnel, range]);
-
-  const openPage = async (path: string) => {
-    setSelectedPath(path);
-    setClicks([]);
-    const res = await callAdmin("heatmap", { funnel, from: rangeFrom(), path });
-    setClicks(res.clicks ?? []);
-  };
-
-  useEffect(() => {
-    if (!selectedPath) return;
-    const canvas = document.getElementById("heatmap-canvas") as HTMLCanvasElement | null;
-    if (!canvas) return;
-    const W = canvas.width = 900;
-    // find max vh in the data for height
-    const maxVh = Math.max(600, ...clicks.map((c) => c.vh || 0));
-    const H = canvas.height = Math.min(4000, maxVh);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#0f1116";
-    ctx.fillRect(0, 0, W, H);
-    // grid
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
-    for (let x = 0; x <= W; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-    for (let y = 0; y <= H; y += 60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-    // dots (additive blending)
-    ctx.globalCompositeOperation = "lighter";
-    for (const c of clicks) {
-      const x = (c.x_pct ?? 0) * W;
-      const y = (c.y_pct ?? 0) * H;
-      const r = 30;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, "rgba(255,80,40,0.55)");
-      g.addColorStop(0.5, "rgba(255,180,40,0.25)");
-      g.addColorStop(1, "rgba(255,255,0,0)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalCompositeOperation = "source-over";
-  }, [selectedPath, clicks]);
-
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-orange-400" />
-            <h2 className="font-bold text-lg">Mapa de Calor · {getFunnelLabel(funnel)}</h2>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded"><X className="w-5 h-5" /></button>
-        </div>
-        <div className="flex-1 overflow-auto grid md:grid-cols-[280px_1fr]">
-          <aside className="border-r border-white/10 p-3 overflow-y-auto max-h-[70vh]">
-            <div className="text-xs uppercase text-white/50 mb-2">Páginas ({pages.length})</div>
-            {loading && <p className="text-white/50 text-sm">Carregando...</p>}
-            {!loading && pages.length === 0 && <p className="text-white/40 text-sm">Sem cliques registrados neste período.</p>}
-            <ul className="space-y-1">
-              {pages.map((p) => (
-                <li key={p.path}>
-                  <button onClick={() => openPage(p.path)} className={`w-full text-left px-3 py-2 rounded text-sm ${selectedPath === p.path ? "bg-orange-600/30 text-orange-200" : "hover:bg-white/5 text-white/80"}`}>
-                    <div className="truncate">{p.path}</div>
-                    <div className="text-xs text-white/50">{p.count} cliques</div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </aside>
-          <section className="p-4 overflow-auto">
-            {!selectedPath && <p className="text-white/50 text-sm">Selecione uma página à esquerda para ver o mapa de calor.</p>}
-            {selectedPath && (
-              <div>
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="text-sm text-white/70 truncate">{selectedPath}</div>
-                  <div className="text-xs text-white/50">{clicks.length} cliques</div>
-                </div>
-                <canvas id="heatmap-canvas" className="w-full max-w-full rounded border border-white/10" />
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 
 const OABTracker = () => {
-  const [auth, setAuth] = useState(!!sessionStorage.getItem(TOKEN_KEY));
-  const logout = () => { sessionStorage.removeItem(TOKEN_KEY); setAuth(false); };
-  return auth ? <Dashboard onLogout={logout} /> : <Login onOk={() => setAuth(true)} />;
+  const [authed, setAuthed] = useState(!!sessionStorage.getItem(TOKEN_KEY));
+  if (!authed) return <Login onOk={() => setAuthed(true)} />;
+  return <Dashboard onLogout={() => { sessionStorage.removeItem(TOKEN_KEY); setAuthed(false); }} />;
 };
 
 export default OABTracker;
