@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   QuizShell,
   QuizTitle,
@@ -10,8 +9,8 @@ import {
 } from "@/components/quiz/QuizShell";
 import { initTracking, trackEvent, trackEventAndFlush } from "@/lib/tracking";
 import { pixelTrack, pixelTrackCustom } from "@/lib/pixels";
-import { PRODUCTS, pickTierForBudget, getMeetCta } from "@/data/products";
 import { forwardUtms } from "./Quiz1";
+import PlatformSimulation from "@/components/PlatformSimulation";
 import joaoPedro from "@/assets/joao-pedro.jpeg";
 import depoimentoNazareth from "@/assets/depoimento1.jpg.asset.json";
 import dep1 from "@/assets/depoimento1.jpeg";
@@ -21,13 +20,16 @@ import dep4 from "@/assets/depoimento4.jpeg";
 import dep5 from "@/assets/depoimento5.jpeg";
 import dep6 from "@/assets/depoimento6.jpeg";
 
+const METODO_EDO_CHECKOUT = "https://pay.hub.la/Z08MD3vV36hYF7qOcelU";
+const METODO_EDO_PRICE = 37.9;
+const METODO_EDO_SLUG = "metodo-edo";
+
 // Preload all quiz images on mount to eliminate first-render delay
 const PRELOAD_IMGS = [joaoPedro, depoimentoNazareth.url, dep1, dep2, dep3, dep4, dep5, dep6];
 
 type A = Record<string, any>;
 
 const Quiz2 = () => {
-  const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [a, setA] = useState<A>({});
 
@@ -35,22 +37,19 @@ const Quiz2 = () => {
     initTracking({ funnel: "quiz2" });
     pixelTrackCustom("QuizStart", { funnel: "quiz2" });
     pixelTrack("Lead", { funnel: "quiz2" });
-    // Preload images so subsequent steps render instantly
     PRELOAD_IMGS.forEach((src) => { const img = new Image(); img.src = src; });
   }, []);
   useEffect(() => { trackEvent("quiz_step", { funnel: "quiz2", step, answers: a }); }, [step]);
 
   const next = (p: A = {}) => { setA((prev) => ({ ...prev, ...p })); setStep((s) => s + 1); };
 
-  // recomendação baseada no orçamento (parte #14)
-  const budget = a.orcamento ?? 50;
-  let recSlug = "50-questoes-etica";
-  if (budget >= 80) recSlug = "mapa-aprovacao";
-  else if (budget >= 50) recSlug = "36-tpps-etica";
-  else if (budget >= 30) recSlug = "50-questoes-etica";
-  else recSlug = "mapas-mentais-etica";
-  const recProduct = PRODUCTS[recSlug];
-  const recTier = pickTierForBudget(recProduct, budget);
+  const goToCheckout = () => {
+    trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: METODO_EDO_SLUG, price: METODO_EDO_PRICE, answers: a });
+    pixelTrack("InitiateCheckout", { funnel: "quiz2", content_ids: [METODO_EDO_SLUG], value: METODO_EDO_PRICE, currency: "BRL" });
+    const extra = forwardUtms();
+    const url = extra ? `${METODO_EDO_CHECKOUT}?${extra.replace(/^&/, "")}` : METODO_EDO_CHECKOUT;
+    window.location.href = url;
+  };
 
   const steps: React.ReactNode[] = [
     // #1
@@ -89,6 +88,7 @@ const Quiz2 = () => {
           { e: "😰", l: "+ de 7 vezes" },
           { e: "😓", l: "Entre 5 e 7 vezes" },
           { e: "😕", l: "Entre 3 e 5 vezes" },
+          { e: "😐", l: "Entre 1 e 3 vezes" },
           { e: "🌱", l: "Vou fazer minha primeira vez" },
         ].map((x) => (
           <QuizButton key={x.l} variant="outline" onClick={() => next({ reprovacoes: x.l })}>
@@ -220,23 +220,7 @@ const Quiz2 = () => {
         ))}
       </QuizOptions>
     </>,
-    // #14
-    <>
-      <QuizTitle>Quanto você tem disponível para investir no seu sonho?</QuizTitle>
-      <QuizOptions>
-        {[
-          { e: "💵", l: "Menos de 30 reais", v: 25 },
-          { e: "💰", l: "Entre 30 e 50 reais", v: 45 },
-          { e: "💎", l: "Entre 50 e 80 reais", v: 75 },
-          { e: "🚀", l: "Mais de 80 reais", v: 120 },
-        ].map((x) => (
-          <QuizButton key={x.l} variant="outline" onClick={() => next({ orcamento: x.v })}>
-            <span className="mr-2">{x.e}</span>{x.l}
-          </QuizButton>
-        ))}
-      </QuizOptions>
-    </>,
-    // #15 compromisso
+    // #14 compromisso
     <>
       <QuizTitle>
         Você se compromete a seguir o plano que vou desenvolver para você usando o sistema EDO e começar a aplicar o quanto antes?
@@ -249,10 +233,10 @@ const Quiz2 = () => {
         onSelect={(v) => next({ compromisso: v })}
       />
     </>,
-    // #15b perfil ideal
+    // #15 perfil ideal
     <PerfilIdealStep onNext={() => setStep((s) => s + 1)} />,
 
-    // #16 plano
+    // #16 plano — só o botão
     <>
       <div className="text-center mb-4">
         <span className="inline-block bg-green-500/20 text-green-400 font-bold text-xs px-3 py-1 rounded-full uppercase">Seu plano está pronto</span>
@@ -261,20 +245,11 @@ const Quiz2 = () => {
         Baseado no seu perfil{a.nome ? `, ${a.nome}` : ""}, <span className="text-green-400">desenvolvi um plano exclusivamente para você</span>
       </QuizTitle>
       <TimelineAprovacao />
-      <div className="bg-white/5 rounded-2xl p-6 mb-6 border border-green-500/30">
-        <p className="text-white/70 text-sm text-center mb-2">Material recomendado para você</p>
-        <p className="text-xl sm:text-2xl font-bold text-center mb-3">{recProduct.name}</p>
-        <div className="text-3xl sm:text-4xl font-extrabold text-green-400 text-center mb-1">{recTier.priceLabel}</div>
-        <p className="text-center text-white/60 text-sm">ou {recTier.installments}</p>
-      </div>
-      <QuizButton onClick={() => {
-        trackEventAndFlush("quiz_recommend", { funnel: "quiz2", slug: recSlug, price: recTier.price, answers: a });
-        pixelTrack("InitiateCheckout", { funnel: "quiz2", content_ids: [recSlug], value: recTier.price, currency: "BRL" });
-        const extra = forwardUtms();
-        nav(`/produto/${recSlug}?t=${Math.round(recTier.price * 100)}${extra}`);
-      }}>{getMeetCta(recProduct)} →</QuizButton>
-
+      <QuizButton onClick={() => next()}>Quero o método →</QuizButton>
     </>,
+
+    // #17 SALES PAGE
+    <SalesPageStep nome={a.nome} onCheckout={goToCheckout} />,
   ];
 
   const progress = Math.round(((step + 1) / steps.length) * 100);
@@ -328,8 +303,6 @@ const LoadingProfile = ({ onDone }: { onDone: () => void; nome?: string }) => {
   );
 };
 
-
-
 const PerfilIdealStep = ({ onNext }: { onNext: () => void }) => {
   const [p, setP] = useState(0);
   const [done, setDone] = useState(false);
@@ -382,5 +355,116 @@ const TimelineAprovacao = () => (
     ))}
   </div>
 );
+
+// ============ SALES PAGE embutida dentro do quiz ============
+const SalesPageStep = ({ nome, onCheckout }: { nome?: string; onCheckout: () => void }) => {
+  const antes = [
+    "Estudo chato e desorganizado",
+    "Cursos caríssimos e ineficazes",
+    "Muita teoria e pouca prática",
+    "Zero foco naquilo que realmente cai",
+  ];
+  const depois = [
+    "Estudo gamificado e ativo",
+    "Valor simbólico, menor que o de um lanche",
+    "Teoria seguida de questões",
+    "FOCO TOTAL naquilo que realmente cai",
+    "Um caminho validado por + de 1 mil alunos aprovados",
+  ];
+  const beneficios = [
+    {
+      titulo: "Plataforma completa e gamificada",
+      texto:
+        "Uma plataforma completa que te diz dia por dia exatamente o que estudar, como estudar e quando estudar, além de todos os exercícios sobre o tema. Sua tarefa é somente sentar, ler a explicação e fazer os exercícios.",
+    },
+    {
+      titulo: "Baseado nos TPP's",
+      texto:
+        "100% baseado nos TPP's (Temas Potenciais de Prova), você estuda exatamente aquilo que cai na hora do seu exame, sem perda de tempo. A plataforma foi projetada exatamente para distribuir o seu estudo priorizando os temas de maior incidência.",
+    },
+    {
+      titulo: "Estudo Ativo & Guiado",
+      texto:
+        "Estudar passa de ser um fardo e começa a se tornar algo divertido, você vai completando os dias e sentindo-se motivado(a) a continuar! Um caminho pronto, com tudo mastigado e estruturado para tornar o seu estudo divertido e te guiar até a aprovação por um caminho seguro.",
+    },
+    {
+      titulo: "Suporte Total & Metodologia exclusiva",
+      texto:
+        "Cada dia os conteúdos são passados de modo a fixar os conteúdos na sua mente, com opção de revisar cada dia sempre que necessário. Além disso, caso surja alguma dúvida, nossos professores estão sempre prontos para te atender!!",
+    },
+    {
+      titulo: "BÔNUS: Gerador de cronogramas personalizados",
+      texto:
+        "Gere simulados personalizados baseados nas suas dificuldades e revise com muito mais facilidade! Normalmente cobramos um adicional de + 27 reais, porém hoje você leva DE GRAÇA.",
+      bonus: true,
+    },
+  ];
+
+  return (
+    <div className="-mx-4 -my-8 sm:-my-10">
+      <div className="px-4 py-8 sm:py-12 max-w-3xl mx-auto">
+        <QuizTitle>
+          O que o diagnóstico mostrou tem solução{nome ? `, ${nome}` : ""}. <span className="text-green-400">E é mais simples do que você imagina.</span>
+        </QuizTitle>
+
+        {/* Antes x Depois */}
+        <div className="grid md:grid-cols-2 gap-4 mb-10 mt-6">
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-5">
+            <h3 className="font-heading font-bold text-lg text-red-400 mb-3 text-center">Antes do Método EDO</h3>
+            <ul className="space-y-2">
+              {antes.map((t) => (
+                <li key={t} className="flex items-start gap-2 text-sm sm:text-base text-white/85">
+                  <span className="text-red-400 mt-0.5">✗</span><span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5">
+            <h3 className="font-heading font-bold text-lg text-green-400 mb-3 text-center">Depois do Método EDO</h3>
+            <ul className="space-y-2">
+              {depois.map((t) => (
+                <li key={t} className="flex items-start gap-2 text-sm sm:text-base text-white/85">
+                  <span className="text-green-400 mt-0.5">✓</span><span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* O que vai receber */}
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-center mb-6">O QUE VOCÊ VAI RECEBER</h2>
+        <div className="flex flex-col gap-4 mb-10">
+          {beneficios.map((b) => (
+            <div
+              key={b.titulo}
+              className={`rounded-2xl p-5 border ${b.bonus ? "bg-green-500/10 border-green-500/40" : "bg-white/5 border-white/10"}`}
+            >
+              <h3 className={`font-heading font-bold text-base sm:text-lg mb-2 ${b.bonus ? "text-green-400" : "text-white"}`}>
+                {b.titulo}
+              </h3>
+              <p className="text-white/80 text-sm sm:text-base leading-relaxed">{b.texto}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Demonstração */}
+        <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-center mb-2">Não confia em mim? Veja com seus próprios olhos</h2>
+        <p className="text-center text-white/60 mb-6 text-sm">Experimente o Dia 1 da plataforma agora mesmo:</p>
+        <div className="rounded-2xl overflow-hidden bg-white text-black mb-10 shadow-2xl">
+          <PlatformSimulation />
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={onCheckout}
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold py-5 px-5 rounded-xl transition-all text-lg sm:text-xl shadow-2xl uppercase tracking-wide"
+        >
+          Ver Oferta →
+        </button>
+        <p className="text-center text-white/50 text-xs mt-3">Acesso imediato · Garantia de 7 dias</p>
+      </div>
+    </div>
+  );
+};
 
 export default Quiz2;
